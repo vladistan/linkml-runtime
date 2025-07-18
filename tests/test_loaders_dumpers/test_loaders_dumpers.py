@@ -65,7 +65,7 @@ class LoadersDumpersTestCase(unittest.TestCase):
         """
         Tests the load_any loader method, which can be used to load directly to a list
         """
-        view = SchemaView(SCHEMA)
+        SchemaView(SCHEMA)
         with open(DATA, encoding="UTF-8") as stream:
             data = yaml.safe_load(stream)
         # persons = yaml_loader.load_source(data, target_class=Person)
@@ -179,7 +179,7 @@ class LoadersDumpersTestCase(unittest.TestCase):
         assert Triple(subject=None, predicate="rdfs:subClassOf", object="NCBITaxon:1") in obj.statements
         # string ranges
         assert Triple(subject=None, predicate="rdfs:label", object="Bacteria") in obj.statements
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ValueError):
             rdflib_loader.from_rdf_graph(
                 graph,
                 target_class=NodeObject,
@@ -200,7 +200,7 @@ class LoadersDumpersTestCase(unittest.TestCase):
             allow_unprocessed_triples=True,
             prefix_map=taxon_prefix_map,
         )
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ValueError):
             rdflib_loader.from_rdf_graph(
                 graph,
                 target_class=NodeObject,

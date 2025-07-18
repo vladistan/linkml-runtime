@@ -30,7 +30,7 @@ class SchemaAsDictTestCase(unittest.TestCase):
         ystr = schema_as_yaml_dump(view.schema)
         with open(CLEAN_SCHEMA, "w") as stream:
             stream.write(ystr)
-        view2 = SchemaView(ystr)
+        SchemaView(ystr)
         obj = schema_as_dict(view.schema)
         # ensure that prefixes are compacted
         assert obj["prefixes"]["pav"] == "http://purl.org/pav/"

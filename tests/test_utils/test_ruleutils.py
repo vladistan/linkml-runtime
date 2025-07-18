@@ -29,7 +29,7 @@ class RuleUtilsTestCase(unittest.TestCase):
     def test_roll_up(self):
         # no import schema
         view = SchemaView(SCHEMA)
-        c = view.get_class("ProteinCodingGene")
+        view.get_class("ProteinCodingGene")
         rules = subclass_to_rules(view, "ProteinCodingGene", "SeqFeature")
         rule = rules[0]
         print(f"IF: {rule.preconditions}")

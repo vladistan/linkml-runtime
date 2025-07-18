@@ -180,7 +180,7 @@ class RdfLibDumperTestCase(unittest.TestCase):
     def test_undeclared_prefix_raises_error(self):
         view = SchemaView(SCHEMA)
         org1 = Organization("foo")  # not a CURIE or URI
-        with self.assertRaises(Exception) as context:
+        with self.assertRaises(Exception):
             rdflib_dumper.as_rdf_graph(org1, schemaview=view)
         org1 = Organization("http://example.org/foo/o1")
         rdflib_dumper.as_rdf_graph(org1, schemaview=view)
@@ -210,7 +210,7 @@ class RdfLibDumperTestCase(unittest.TestCase):
         """
         view = SchemaView(SCHEMA)
         # default behavior is to raise error on unmapped predicates
-        with self.assertRaises(MappingError) as context:
+        with self.assertRaises(MappingError):
             rdflib_loader.loads(
                 unmapped_predicates_test_ttl, target_class=Person, schemaview=view, prefix_map=self.prefix_map
             )
@@ -254,7 +254,7 @@ class RdfLibDumperTestCase(unittest.TestCase):
         """
         view = SchemaView(SCHEMA)
         # default behavior is to raise error on unmapped predicates
-        with self.assertRaises(DataNotFoundError) as context:
+        with self.assertRaises(DataNotFoundError):
             rdflib_loader.loads(
                 unmapped_type_test_ttl, target_class=Person, schemaview=view, prefix_map=self.prefix_map
             )
@@ -359,7 +359,7 @@ class RdfLibDumperTestCase(unittest.TestCase):
         assert Triple(subject=None, predicate="rdfs:subClassOf", object="NCBITaxon:1") in obj.statements
         # string ranges
         assert Triple(subject=None, predicate="rdfs:label", object="Bacteria") in obj.statements
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ValueError):
             rdflib_loader.from_rdf_graph(
                 graph,
                 target_class=NodeObject,
@@ -380,7 +380,7 @@ class RdfLibDumperTestCase(unittest.TestCase):
             allow_unprocessed_triples=True,
             prefix_map=taxon_prefix_map,
         )
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(ValueError):
             rdflib_loader.from_rdf_graph(
                 graph,
                 target_class=NodeObject,
@@ -394,7 +394,7 @@ class RdfLibDumperTestCase(unittest.TestCase):
     def test_phenopackets(self):
         view = SchemaView(str(Path(INPUT_DIR) / "phenopackets" / "phenopackets.yaml"))
         test_label = "test label"
-        with self.assertRaises(ValueError) as e:
+        with self.assertRaises(ValueError):
             c = OntologyClass(id="NO_SUCH_PREFIX:1", label=test_label)
             rdflib_dumper.dumps(c, view)
         cases = [

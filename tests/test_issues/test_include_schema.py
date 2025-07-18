@@ -12,7 +12,7 @@ class IncludeSchemaTestCase(unittest.TestCase):
 
     # "Awaiting fix for issue #3"
     def test_include_schema(self):
-        inp = yaml_loader.load(env.input_path("include_schema.yaml"), SchemaDefinition)
+        yaml_loader.load(env.input_path("include_schema.yaml"), SchemaDefinition)
 
 
 if __name__ == "__main__":
