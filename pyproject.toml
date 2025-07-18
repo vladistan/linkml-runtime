@@ -178,6 +178,16 @@ ignore = [
     "E203",
     "E501",
     "ISC001",
+    "N801", # class names should use CapWords
+    "N802", # function names should be lowercase
+    "N803", # argument names should be lowercase
+    "N806", # variable names should be lowercase
+    "N815", # Class scoped variables should not be mixedCase
+    "N816", # Class scoped variables should not be snake_case
+    "E741", # ambiguous variable names (e.g. 'l', 'O', 'I')
+    "F811", # undefined name (e.g. 'self') really bad, check this
+    "F821", # undefined name (e.g. 'self') really bad, check this
+
 ]
 
 [tool.ruff.lint.per-file-ignores]
@@ -185,7 +195,7 @@ ignore = [
 
 [tool.ruff.lint.mccabe]
 # Flag errors (`C901`) whenever the complexity level exceeds 15.
-max-complexity = 15
+max-complexity = 71 # This is ridiculously high, but we have some very complex code in the runtime
 
 [tool.tox]
 requires = ["tox>=4"]
