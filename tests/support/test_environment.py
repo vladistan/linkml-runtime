@@ -22,7 +22,7 @@ def no_click_exit(_self, code=0):
 
 
 # This import has to occur here
-import click
+import click  # noqa: E402
 
 click.core.Context.exit = no_click_exit
 

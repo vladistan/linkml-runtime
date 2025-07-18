@@ -8,6 +8,7 @@ import requests
 
 HAVE_REQUESTS_CACHE = bool(find_spec("requests_cache"))
 
+# noqa: E402
 from linkml_runtime.linkml_model.linkml_files import (
     GITHUB_IO_PATH_FOR,
     GITHUB_PATH_FOR,
