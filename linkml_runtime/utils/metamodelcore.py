@@ -24,7 +24,7 @@ _z = Decimal(1)
 # ===========================
 # Fields for use in dataclass
 # ===========================
-from linkml_runtime.utils.yamlutils import TypedNode
+from linkml_runtime.utils.yamlutils import TypedNode  # noqa: E402
 
 
 def empty_list():

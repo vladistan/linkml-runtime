@@ -49,7 +49,7 @@ funcs = {
 }
 
 
-class UnsetValueException(Exception):
+class UnsetValueException(Exception):  # noqa: N818
     pass
 
 
