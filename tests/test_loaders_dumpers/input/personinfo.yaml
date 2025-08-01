@@ -18,6 +18,12 @@ prefixes:
   bizcodes: https://example.org/bizcodes/
   HP: http://purl.obolibrary.org/obo/HP_
   skos: http://www.w3.org/2004/02/skos/core#
+
+  # DATA PREFIXES
+  P: http://example.org/P/
+  ROR: http://example.org/ror/
+  CODE: http://example.org/code/
+  GEO: http://example.org/geoloc/
 default_prefix: personinfo
 default_range: string
 
@@ -52,7 +58,6 @@ classes:
       - id
       - name
       - description
-      - image
       - depicted_by
     close_mappings:
      - schema:Thing
@@ -64,12 +69,14 @@ classes:
     class_uri: schema:Person
     mixins:
       - HasAliases
+      - HasNewsEvents
     slots:
       - primary_email
       - birth_date
       - age_in_years
       - gender
       - current_address
+      - telephone
       - has_employment_history
       - has_familial_relationships
       - has_interpersonal_relationships
@@ -77,6 +84,12 @@ classes:
     slot_usage:
       primary_email:
         pattern: "^\\S+@[\\S+\\.]+\\S+"
+      age_in_years:
+        recommended: true
+      telephone:
+        recommended: true
+    in_subset:
+      - basic_subset
 
   HasAliases:
     description: >-
@@ -84,10 +97,23 @@ classes:
     mixin: true
     attributes:
       aliases:
+        singular_name: alias
         multivalued: true
         exact_mappings:
           - schema:alternateName
 
+  NewsEvent:
+    is_a: Event
+    attributes:
+      headline:
+
+  HasNewsEvents:
+    mixin: true
+    attributes:
+      has_news_events:
+        singular_name: has_news_event
+        multivalued: true
+        range: NewsEvent
 
   Organization:
     description: >-
@@ -96,10 +122,11 @@ classes:
     class_uri: schema:Organization
     mixins:
       - HasAliases
+      - HasNewsEvents
     slots:
       - mission_statement
       - founding_date
-      - founding_location
+      - founding location
       - categories
       - score
       - min_salary
@@ -115,8 +142,6 @@ classes:
           slot_conditions:
             min_salary:
               maximum_value: 80000.00
-
-
 
   Place:
     mixins:
@@ -160,6 +185,9 @@ classes:
     slots:
       - subtype
 
+  IntegerPrimaryKeyObject:
+    slots:
+      - int_id
 
   OperationProcedureConcept:
     is_a: ProcedureConcept
@@ -209,37 +237,37 @@ classes:
 
   MedicalEvent:
     is_a: Event
+    mixins:
+      - WithLocation
     slots:
-      - in location
       - diagnosis
       - procedure
 
   WithLocation:
     mixin: true
     slots:
-      - in location
+      - in_location
 
+  # TODO: annotate that this is a container/root class
   Container:
     tree_root: true
-    attributes:
-      persons:
-        range: Person
-        inlined: true
-        inlined_as_list: true
-        multivalued: true
-      organizations:
-        range: Organization
-        inlined_as_list: false
-        inlined: true
-        multivalued: true
+    slots:
+      - persons
+      - organizations
+      - places
 
 slots:
   id:
     identifier: true
     slot_uri: schema:identifier
     range: uriorcurie
+  int_id:
+    identifier: true
+    slot_uri: schema:int_identifier
+    range: integer
   name:
     slot_uri: schema:name
+    required: true
   description:
     slot_uri: schema:description
   image:
@@ -247,6 +275,10 @@ slots:
   gender:
     slot_uri: schema:gender
     range: GenderType
+  telephone:
+    slot_uri: schema:telephone
+    pattern: "^[\\d\\(\\)\\-]+$"
+
   primary_email:
     slot_uri: schema:email
   birth_date:
@@ -271,7 +303,7 @@ slots:
     range: InterPersonalRelationship
     multivalued: true
     inlined_as_list: true
-  in location:
+  in_location:
     range: Place
   current_address:
     description: >-
@@ -279,6 +311,7 @@ slots:
     range: Address
   age_in_years:
     range: integer
+    alias: age
     minimum_value: 0
     maximum_value: 999
   score:
@@ -287,7 +320,7 @@ slots:
     minimum_value: 0.0
     maximum_value: 5.0
   related_to:
-    range: NamedThing
+    range: Person
   depicted_by:
     range: ImageURL
   type:
@@ -298,7 +331,7 @@ slots:
   city:
   mission_statement:
   founding_date:
-  founding_location:
+  founding location:
     range: Place
   postal_code:
     range: string
@@ -313,14 +346,27 @@ slots:
   procedure:
     range: ProcedureConcept
     inlined: true
-
   ended_at_time:
     slot_uri: prov:endedAtTime
     range: date
 
+  persons:
+    range: Person
+    inlined: true
+    inlined_as_list: true
+    multivalued: true
+  organizations:
+    range: Organization
+    inlined_as_list: true
+    inlined: true
+    multivalued: true
+  places:
+    range: Place
+    inlined_as_list: true
+    inlined: true
+    multivalued: true
   categories:
     multivalued: true
-
   salary:
     range: SalaryType
   min_salary:
@@ -335,7 +381,7 @@ enums:
       PARENT_OF:
         meaning: famrel:02
       CHILD_OF:
-        meaning: famrel:01
+        meaning: famrel:03
   NonFamilialRelationshipType:
     permissible_values:
       COWORKER_OF:
@@ -370,3 +416,7 @@ enums:
         meaning: bizcodes:001
       shell company:
       loose organization:
+
+subsets:
+  basic_subset:
+    description: A subset of the schema that handles basic information
