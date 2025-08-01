@@ -2,7 +2,7 @@
 
 ## Progress Overview
 
-### Completed ✅ (21/30 files - 70% complete)
+### Completed ✅ (22/30 files - 73% complete)
 - ✅ tests/test_utils/test_version.py 🟢
 - ✅ tests/test_utils/test_metamodelcore.py 🟡
 - ✅ tests/test_utils/test_list_strings.py 🟢
@@ -24,8 +24,9 @@
 - ✅ tests/test_loaders_dumpers/test_csv_tsv_loader_dumper.py 🟠
 - ✅ tests/test_issues/test_include_schema.py 🟠
 - ✅ tests/test_processing/test_arrays.py 🟡
+- ✅ tests/test_index/test_object_index.py 🟡
 
-### Remaining Files to Convert (9/30 files - 30% remaining)
+### Remaining Files to Convert (8/30 files - 27% remaining)
 
 #### tests/test_loaders_dumpers/ (5 files)
 - ⏳ test_loaders_dumpers.py 🔴
@@ -51,8 +52,8 @@
 - ✅ test_arrays.py 🟡
 - ⏳ test_referencevalidator.py 🟠
 
-#### tests/test_index/ (1 file)
-- ⏳ test_object_index.py 🟡
+#### tests/test_index/ (0 files) ✅ ALL COMPLETED
+- ✅ test_object_index.py 🟡
 
 #### tests/support/ (2 files)
 - ⏳ clicktestcase.py 🔴 - *Base class used by other tests*
@@ -69,7 +70,7 @@
 - ✅ test_csv_tsv_loader_dumper.py
 - ✅ test_include_schema.py
 - ✅ test_arrays.py
-- ⏳ test_object_index.py
+- ✅ test_object_index.py
 - ⏳ test_loaders_pydantic.py
 - ⏳ test_loaders.py
 - ⏳ test_dumpers.py
