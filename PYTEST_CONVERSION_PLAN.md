@@ -2,7 +2,7 @@
 
 ## Progress Overview
 
-### Completed ✅ (25/30 files - 83% complete)
+### Completed ✅ (26/30 files - 87% complete)
 - ✅ tests/test_utils/test_version.py 🟢
 - ✅ tests/test_utils/test_metamodelcore.py 🟡
 - ✅ tests/test_utils/test_list_strings.py 🟢
@@ -29,8 +29,9 @@
 - ✅ tests/test_loaders_dumpers/test_loaders.py 🟡
 - ✅ tests/test_loaders_dumpers/test_dumpers.py 🟡
 - ✅ tests/test_loaders_dumpers/test_rdflib_dumper.py 🟡
+- ✅ tests/support/test_environment.py 🟡
 
-### Remaining Files to Convert (5/30 files - 17% remaining)
+### Remaining Files to Convert (4/30 files - 13% remaining)
 
 #### tests/test_loaders_dumpers/ (1 file)
 - ⏳ test_loaders_dumpers.py 🔴
@@ -55,7 +56,7 @@
 
 #### tests/support/ (2 files)
 - ⏳ clicktestcase.py 🔴 - *Base class used by other tests*
-- ⏳ test_environment.py 🟡 - *Test infrastructure*
+- ✅ test_environment.py 🟡 - *Test infrastructure*
 
 #### tests/test_issues/ (0 files) ✅ ALL COMPLETED
 - ✅ test_include_schema.py 🟠
@@ -73,7 +74,7 @@
 - ✅ test_loaders.py
 - ✅ test_dumpers.py
 - ✅ test_rdflib_dumper.py
-- ⏳ test_environment.py
+- ✅ test_environment.py
 
 **Complex 🔴:**
 - ⏳ test_referencevalidator.py
@@ -447,15 +448,30 @@
 - May need to convert to pytest fixtures or helper functions
 - Critical to convert carefully as other tests depend on it
 
-#### test_environment.py
+#### test_environment.py ✅ COMPLETED
 **Complexity**: Medium
 **Key Features**:
-- Tests or provides test environment setup
-- May be used by other tests
+- Test infrastructure providing TestEnvironmentTestCase base class
+- Used by other tests throughout the codebase
+- Handles test environment setup, file comparisons, directory management
+- Provides mismatch logging and error handling for test outputs
 
 **Conversion Notes**:
-- Check if this is tests or test infrastructure
-- May need to become pytest fixtures
+- ✅ Comprehensive conversion completed
+- ✅ Removed unittest imports and TestCase inheritance
+- ✅ **ENHANCED**: Converted TestEnvironmentTestCase to pytest fixture pattern:
+  - `create_test_environment_fixture()` - Factory function for environment fixtures
+  - `test_environment_check()` - Fixture for error checking equivalent to tearDown
+  - `redirect_logstream()` - Context manager (formerly instance method)
+- ✅ **ENHANCED**: Added helper functions for common patterns:
+  - `get_test_environment()` - Create TestEnvironment instance
+  - `make_env_fixture()` - Convenience function for fixture creation
+- ✅ **ENHANCED**: Maintained backward compatibility:
+  - Legacy TestEnvironmentTestCase class with deprecation warning
+  - Comprehensive migration guide in docstrings
+- ✅ Preserved all TestEnvironment class functionality (unchanged)
+- ✅ Enhanced documentation with migration examples
+- ✅ Tests can now use modern pytest fixtures while maintaining compatibility
 
 ### tests/test_issues/
 
