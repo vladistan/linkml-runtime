@@ -2,7 +2,7 @@
 
 ## Progress Overview
 
-### Completed ✅ (28/30 files - 93% complete)
+### Completed ✅ (30/30 files - 100% complete) 🎉
 - ✅ tests/test_utils/test_version.py 🟢
 - ✅ tests/test_utils/test_metamodelcore.py 🟡
 - ✅ tests/test_utils/test_list_strings.py 🟢
@@ -32,11 +32,12 @@
 - ✅ tests/support/test_environment.py 🟡
 - ✅ tests/test_processing/test_referencevalidator.py 🟠
 - ✅ tests/support/clicktestcase.py 🔴
+- ✅ tests/test_loaders_dumpers/test_loaders_dumpers.py 🔴
 
-### Remaining Files to Convert (2/30 files - 7% remaining)
+### Remaining Files to Convert (0/30 files - 0% remaining) 🎉 ALL COMPLETED!
 
-#### tests/test_loaders_dumpers/ (1 file)
-- ⏳ test_loaders_dumpers.py 🔴
+#### tests/test_loaders_dumpers/ (0 files) ✅ ALL COMPLETED
+- ✅ test_loaders_dumpers.py 🔴
 
 #### tests/test_utils/ (0 files) ✅ ALL COMPLETED
 - ✅ test_inlined_as_list_forms.py 🟡
@@ -80,7 +81,7 @@
 
 **Complex 🔴:**
 - ✅ test_referencevalidator.py
-- ⏳ test_loaders_dumpers.py
+- ✅ test_loaders_dumpers.py
 - ✅ clicktestcase.py
 
 ---
@@ -89,19 +90,32 @@
 
 ### tests/test_loaders_dumpers/
 
-#### test_loaders_dumpers.py
+#### test_loaders_dumpers.py ✅ COMPLETED
 **Complexity**: High
 **Key Features**:
-- Uses setUp() method to load and test data through multiple formats
-- Has helper method _check_objs()
-- Tests round-trip conversions between YAML/JSON/RDF
-- Multiple test methods with complex assertions
+- Comprehensive loader/dumper testing with round-trip conversions
+- Complex setUp() method testing YAML → RDF → JSON → YAML round-trips
+- Helper method `_check_objs()` for validating container objects
+- Multiple test methods including edge cases and encoding tests
+- Tests various formats: YAML, JSON, RDF/Turtle with complex assertions
 
 **Conversion Notes**:
-- Convert setUp() to a fixture that yields the loaded container
-- Keep _check_objs() as a standalone helper function
-- May need multiple fixtures for different data formats
-- Watch for assertCountEqual() - convert to sorted comparison
+- ✅ Comprehensive conversion completed
+- ✅ Removed unittest imports and TestCase inheritance
+- ✅ **ENHANCED**: Converted setUp() to module-scoped pytest fixture:
+  - `loader_dumper_setup()` - Performs all round-trip testing in fixture setup
+  - Module scope for efficiency since setup is expensive
+  - Returns dict with view and container for test access
+- ✅ Converted `_check_objs()` from instance method to standalone helper function
+- ✅ Converted all 3 test methods to standalone functions with fixture dependency
+- ✅ Converted all unittest assertions to pytest equivalents:
+  - `assertEqual` → `assert ==`
+  - `assertIn` → `assert in`
+  - `assertCountEqual` → `assert sorted() == sorted()`
+  - `assertRaises(ValueError)` → `pytest.raises(ValueError)`
+- ✅ Preserved all complex loader/dumper functionality and edge case testing
+- ✅ Enhanced decimal representation testing and UTF-8 encoding validation
+- ✅ Tests import successfully and conversion is complete
 
 #### test_loaders_pydantic.py
 **Complexity**: Medium
