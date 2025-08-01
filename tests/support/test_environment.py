@@ -4,12 +4,13 @@ import logging
 import os
 import shutil
 import sys
-import unittest
 from enum import Enum
 from importlib import import_module
 from io import StringIO
 from pathlib import Path
 from typing import Callable, Optional, Union
+
+import pytest
 
 from tests.support.dirutils import are_dir_trees_equal
 from tests.support.mismatchlog import MismatchLog
@@ -265,48 +266,116 @@ class TestEnvironment:
         return not msg
 
 
-class TestEnvironmentTestCase(unittest.TestCase):
-    """
-    A unit test TextCase with an environment inside.  env has to be initialized in situ, as it needs to reference the
-    input, output and temp directories within the context of the particular set of tests.  To initialize
-    this environment:
+# Helper functions for common test environment patterns
+def get_test_environment(file_path: str) -> TestEnvironment:
+    """Create a TestEnvironment instance for the given test file path."""
+    return TestEnvironment(file_path)
 
-    class InheritedTestCase(TestEnvironmentTestCase):
+
+def make_env_fixture(file_path: str):
+    """Convenience function to create an environment fixture for a test file."""
+    env = TestEnvironment(file_path)
+    return create_test_environment_fixture(env)
+
+
+def create_test_environment_fixture(env_instance: TestEnvironment):
+    """
+    Create a pytest fixture for TestEnvironment instances.
+    
+    Usage in test files:
         env = TestEnvironment(__file__)
-        ...
+        test_env = create_test_environment_fixture(env)
     """
+    @pytest.fixture(scope="class")
+    def test_environment_fixture():
+        """Initialize and cleanup test environment."""
+        if env_instance:
+            env_instance.make_testing_directory(env_instance.tempdir, clear=True)
+        
+        yield env_instance
+        
+        # Cleanup - equivalent to tearDownClass
+        if env_instance:
+            msg = str(env_instance)
+            env_instance.clear_log()
+            if msg and env_instance.report_errors:
+                print(msg, file=sys.stderr)
+    
+    return test_environment_fixture
 
-    env: TestEnvironment = None
 
-    @classmethod
-    def setUpClass(cls) -> None:
-        if cls.env:
-            cls.env.make_testing_directory(cls.env.tempdir, clear=True)
+@pytest.fixture
+def test_environment_check():
+    """
+    Pytest fixture for error checking equivalent to tearDown.
+    Use with autouse=True in test classes that need environment error checking.
+    """
+    env_instance = None
+    
+    def set_env(env):
+        nonlocal env_instance
+        env_instance = env
+    
+    yield set_env
+    
+    # Check for errors after each test
+    if env_instance and env_instance.fail_on_error:
+        msg = str(env_instance)
+        if msg:
+            env_instance.clear_log()
+            pytest.fail(msg)
 
-    def tearDown(self) -> None:
-        if self.env.fail_on_error:
-            msg = str(self.env)
-            if msg:
-                self.env.clear_log()
-                self.fail(msg)
 
-    @classmethod
-    def tearDownClass(cls) -> None:
-        msg = str(cls.env)
-        cls.env.clear_log()
-        if msg and cls.env.report_errors:
-            print(msg, file=sys.stderr)
+@contextlib.contextmanager
+def redirect_logstream(test_class_name: str):
+    """
+    Context manager for redirecting log streams (formerly instance method).
+    
+    :param test_class_name: Name of the test class for logger naming
+    """
+    logstream = StringIO()
+    logging.basicConfig()
+    logger = logging.getLogger(test_class_name)
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
+    logger.addHandler(logging.StreamHandler(logstream))
+    logger.setLevel(logging.INFO)
+    try:
+        yield logger
+    finally:
+        logger.result = logstream.getvalue()
 
-    @contextlib.contextmanager
-    def redirect_logstream(self):
-        logstream = StringIO()
-        logging.basicConfig()
-        logger = logging.getLogger(self.__class__.__name__)
-        for handler in logger.handlers:
-            logger.removeHandler(handler)
-        logger.addHandler(logging.StreamHandler(logstream))
-        logger.setLevel(logging.INFO)
-        try:
-            yield logger
-        finally:
-            logger.result = logstream.getvalue()
+
+# Legacy compatibility class - deprecated, use fixtures instead
+class TestEnvironmentTestCase:
+    """
+    DEPRECATED: Use pytest fixtures instead.
+    
+    Legacy compatibility for TestEnvironmentTestCase. This is kept for backward compatibility
+    but new tests should use the create_test_environment_fixture() function instead.
+    
+    Migration guide:
+    
+    Old unittest style:
+        class MyTest(TestEnvironmentTestCase):
+            env = TestEnvironment(__file__)
+            
+            def test_something(self):
+                # test code
+    
+    New pytest style:
+        env = TestEnvironment(__file__)
+        test_env = create_test_environment_fixture(env)
+        
+        class TestMy:
+            def test_something(self, test_env):
+                # test code using test_env instead of self.env
+    """
+    
+    def __init__(self):
+        import warnings
+        warnings.warn(
+            "TestEnvironmentTestCase is deprecated. Use create_test_environment_fixture() instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
