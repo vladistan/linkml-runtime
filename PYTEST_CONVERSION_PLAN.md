@@ -2,7 +2,7 @@
 
 ## Progress Overview
 
-### Completed ✅ (24/30 files - 80% complete)
+### Completed ✅ (25/30 files - 83% complete)
 - ✅ tests/test_utils/test_version.py 🟢
 - ✅ tests/test_utils/test_metamodelcore.py 🟡
 - ✅ tests/test_utils/test_list_strings.py 🟢
@@ -27,17 +27,13 @@
 - ✅ tests/test_index/test_object_index.py 🟡
 - ✅ tests/test_loaders_dumpers/test_loaders_pydantic.py 🟡
 - ✅ tests/test_loaders_dumpers/test_loaders.py 🟡
+- ✅ tests/test_loaders_dumpers/test_dumpers.py 🟡
+- ✅ tests/test_loaders_dumpers/test_rdflib_dumper.py 🟡
 
-### Remaining Files to Convert (6/30 files - 20% remaining)
+### Remaining Files to Convert (5/30 files - 17% remaining)
 
-#### tests/test_loaders_dumpers/ (3 files)
+#### tests/test_loaders_dumpers/ (1 file)
 - ⏳ test_loaders_dumpers.py 🔴
-- ✅ test_loaders_pydantic.py 🟡
-- ✅ test_loaders.py 🟡
-- ⏳ test_dumpers.py 🟡
-- ⏳ test_rdflib_dumper.py 🟡
-- ✅ test_csv_tsv_loader_dumper.py 🟠
-- ✅ test_enum.py 🟢
 
 #### tests/test_utils/ (0 files) ✅ ALL COMPLETED
 - ✅ test_inlined_as_list_forms.py 🟡
@@ -75,8 +71,8 @@
 - ✅ test_object_index.py
 - ✅ test_loaders_pydantic.py
 - ✅ test_loaders.py
-- ⏳ test_dumpers.py
-- ⏳ test_rdflib_dumper.py
+- ✅ test_dumpers.py
+- ✅ test_rdflib_dumper.py
 - ⏳ test_environment.py
 
 **Complex 🔴:**
@@ -134,15 +130,35 @@
 - Similar approach to test_loaders.py
 - Ensure consistency between loader and dumper tests
 
-#### test_rdflib_dumper.py
+#### test_rdflib_dumper.py ✅ COMPLETED
 **Complexity**: Medium
 **Key Features**:
-- Tests RDF library integration
-- May involve complex RDF graph comparisons
+- Tests RDF library integration with complex graph comparisons
+- Two test classes: RdfLibDumperTestCase and RdfLibPrefixTestCase
+- Tests RDF dumping/loading, enum handling, edge cases, phenopackets
+- Tests with both standard prefix maps and Converter objects
+- Issue #429 regression tests for prefix handling
 
 **Conversion Notes**:
-- RDF comparisons might need custom assertion helpers
-- Check for any RDF-specific setUp/tearDown
+- ✅ Comprehensive conversion completed
+- ✅ Removed unittest imports and TestCase classes
+- ✅ Converted setUp() methods to pytest fixtures:
+  - `prefix_map()` - Standard PREFIX_MAP fixture
+  - `converter_prefix_map()` - Converter-based prefix map
+  - `issue_429_graph()` - Graph fixture for issue 429 testing
+- ✅ Converted `_check_objs()` from instance method to standalone helper function
+- ✅ Converted all 13 test methods from 2 classes to standalone functions
+- ✅ **ENHANCED**: Added comprehensive test coverage for Converter functionality:
+  - Created duplicate test functions using `converter_prefix_map` fixture
+  - Maintains compatibility with both standard dict and Converter prefix maps
+- ✅ Converted all unittest assertions to pytest equivalents:
+  - `assertIn/assertNotIn` → `assert in/not in`
+  - `assertEqual` → `assert ==`
+  - `assertRaises(Exception)` → `pytest.raises(Exception)`
+  - `assertCountEqual` → `assert sorted() == sorted()`
+- ✅ Preserved all RDF-specific functionality and complex graph assertions
+- ✅ Enhanced docstrings and preserved GitHub issue references
+- ✅ Tests import successfully and conversion is complete
 
 #### test_csv_tsv_loader_dumper.py ✅ COMPLETED
 **Complexity**: Low-Medium
