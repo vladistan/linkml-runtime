@@ -2,7 +2,7 @@
 
 ## Progress Overview
 
-### Completed ✅ (19/30 files - 63% complete)
+### Completed ✅ (20/30 files - 67% complete)
 - ✅ tests/test_utils/test_version.py 🟢
 - ✅ tests/test_utils/test_metamodelcore.py 🟡
 - ✅ tests/test_utils/test_list_strings.py 🟢
@@ -22,8 +22,9 @@
 - ✅ tests/test_utils/test_poly_dataclasses.py 🟡
 - ✅ tests/test_loaders_dumpers/test_enum.py 🟢
 - ✅ tests/test_loaders_dumpers/test_csv_tsv_loader_dumper.py 🟠
+- ✅ tests/test_issues/test_include_schema.py 🟠
 
-### Remaining Files to Convert (11/30 files - 37% remaining)
+### Remaining Files to Convert (10/30 files - 33% remaining)
 
 #### tests/test_loaders_dumpers/ (5 files)
 - ⏳ test_loaders_dumpers.py 🔴
@@ -56,8 +57,8 @@
 - ⏳ clicktestcase.py 🔴 - *Base class used by other tests*
 - ⏳ test_environment.py 🟡 - *Test infrastructure*
 
-#### tests/test_issues/ (1 file)
-- ⏳ test_include_schema.py 🟠
+#### tests/test_issues/ (0 files) ✅ ALL COMPLETED
+- ✅ test_include_schema.py 🟠
 
 ### Recommended Order by Complexity
 **Easy wins 🟢:**
@@ -65,7 +66,7 @@
 
 **Medium effort 🟠🟡:**
 - ✅ test_csv_tsv_loader_dumper.py
-- ⏳ test_include_schema.py
+- ✅ test_include_schema.py
 - ⏳ test_arrays.py
 - ⏳ test_object_index.py
 - ⏳ test_loaders_pydantic.py
@@ -428,15 +429,24 @@
 
 ### tests/test_issues/
 
-#### test_include_schema.py
+#### test_include_schema.py ✅ COMPLETED
 **Complexity**: Low-Medium
 **Key Features**:
-- Tests for specific issue (schema inclusion)
-- Likely regression tests
+- Regression test for GitHub issue #3: schema inclusion exceptions
+- Single test method: test_include_schema
+- Tests schema loading without assertions (original test)
+- Used by linkml issues tracking
 
 **Conversion Notes**:
-- Straightforward conversion
-- Preserve any issue numbers in test names/comments
+- ✅ Simple conversion completed
+- ✅ Removed unittest imports and TestCase class
+- ✅ Converted single test method to standalone function
+- ✅ **ENHANCED**: Added meaningful assertions to verify schema loading success:
+  - `assert inp is not None` - Ensures schema was loaded
+  - `assert isinstance(inp, SchemaDefinition)` - Verifies correct type
+- ✅ Enhanced docstring with GitHub issue reference and purpose
+- ✅ Preserved GitHub issue #3 reference in comments
+- ✅ Tests import successfully and conversion is complete
 
 ---
 
