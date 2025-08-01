@@ -260,7 +260,7 @@ class ReferenceValidatorTestCase(unittest.TestCase):
         for slot, expected in cases:
             sb = SchemaBuilder()
             _add_core_schema_elements(sb, slot)
-            normalizer = self._get_normalizer(sb)
+            normalizer = _get_normalizer(sb)
             self.assertEqual(
                 expected,
                 normalizer.infer_slot_collection_form(slot),
@@ -503,7 +503,7 @@ class ReferenceValidatorTestCase(unittest.TestCase):
                 slot = slot_info
             slot.multivalued = form != CollectionForm.NonCollection
             _add_core_schema_elements(sb, slot)
-            normalizer = self._get_normalizer(sb)
+            normalizer = _get_normalizer(sb)
             if slot.range in ["Identified", "Simple"]:
                 pk_slot_name = SlotDefinitionName("id")
             else:
@@ -806,7 +806,7 @@ class ReferenceValidatorTestCase(unittest.TestCase):
             sb.add_class("NonIdentified", slots=["name", "description"])
             sb.add_class("Simple", slots=["id", "name"])
             sb.add_class("TestClass", slots=[slot])
-            normalizer = self._get_normalizer(sb)
+            normalizer = _get_normalizer(sb)
             base_name = slot.description.lower().replace(" ", "-")
             yaml_dumper.dump(
                 normalizer.derived_schema,
@@ -876,7 +876,7 @@ class ReferenceValidatorTestCase(unittest.TestCase):
             sb = SchemaBuilder()
             sb.add_slot("s", range=range, **{metaslot: metaval})
             sb.add_class("TestClass", slots=["s"])
-            normalizer = self._get_normalizer(sb)
+            normalizer = _get_normalizer(sb)
             derived_schema = normalizer.derived_schema
             tc = derived_schema.classes["TestClass"]
             for ex in valid_examples:
