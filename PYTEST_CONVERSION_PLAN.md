@@ -2,7 +2,7 @@
 
 ## Progress Overview
 
-### Completed ✅ (23/30 files - 77% complete)
+### Completed ✅ (24/30 files - 80% complete)
 - ✅ tests/test_utils/test_version.py 🟢
 - ✅ tests/test_utils/test_metamodelcore.py 🟡
 - ✅ tests/test_utils/test_list_strings.py 🟢
@@ -26,13 +26,14 @@
 - ✅ tests/test_processing/test_arrays.py 🟡
 - ✅ tests/test_index/test_object_index.py 🟡
 - ✅ tests/test_loaders_dumpers/test_loaders_pydantic.py 🟡
+- ✅ tests/test_loaders_dumpers/test_loaders.py 🟡
 
-### Remaining Files to Convert (7/30 files - 23% remaining)
+### Remaining Files to Convert (6/30 files - 20% remaining)
 
-#### tests/test_loaders_dumpers/ (4 files)
+#### tests/test_loaders_dumpers/ (3 files)
 - ⏳ test_loaders_dumpers.py 🔴
 - ✅ test_loaders_pydantic.py 🟡
-- ⏳ test_loaders.py 🟡
+- ✅ test_loaders.py 🟡
 - ⏳ test_dumpers.py 🟡
 - ⏳ test_rdflib_dumper.py 🟡
 - ✅ test_csv_tsv_loader_dumper.py 🟠
@@ -73,7 +74,7 @@
 - ✅ test_arrays.py
 - ✅ test_object_index.py
 - ✅ test_loaders_pydantic.py
-- ⏳ test_loaders.py
+- ✅ test_loaders.py
 - ⏳ test_dumpers.py
 - ⏳ test_rdflib_dumper.py
 - ⏳ test_environment.py
