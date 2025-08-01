@@ -6,6 +6,8 @@ from pydantic import BaseModel
 
 from linkml_runtime.dumpers import yaml_dumper
 from linkml_runtime.loaders import json_loader, yaml_loader
+from linkml_runtime.loaders.loader_root import Loader
+from linkml_runtime.utils.yamlutils import YAMLRoot
 from tests.test_loaders_dumpers.environment import env
 from tests.test_loaders_dumpers.models.books_normalized_pydantic import BookSeries
 from tests.test_loaders_dumpers.models.kitchen_sink_pydantic import Dataset
