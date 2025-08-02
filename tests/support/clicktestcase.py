@@ -7,8 +7,7 @@ import pytest
 
 from tests.support.compare_rdf import compare_rdf
 from tests.support.dirutils import make_and_clear_directory
-from tests.support.test_environment import TestEnvironment, create_test_environment_fixture
-
+from tests.support.test_environment import TestEnvironment
 
 # Module-level constants for pytest-based tests
 TEST_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "output"))
@@ -18,51 +17,52 @@ TEMP_BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "temp"))
 def create_click_test_fixtures(env_instance: TestEnvironment, testdir: str, click_ep, prog_name: str):
     """
     Factory function to create pytest fixtures for Click-based command line testing.
-    
+
     Usage:
         env = TestEnvironment(__file__)
         testdir = "my_tests"
         click_ep = my_click_entry_point
         prog_name = "my_prog"
-        
+
         click_fixtures = create_click_test_fixtures(env, testdir, click_ep, prog_name)
         click_env = click_fixtures['click_env']
         do_test = click_fixtures['do_test']
-    
+
     Args:
         env_instance: TestEnvironment instance
         testdir: subdirectory within outdir
         click_ep: entry point for particular function
         prog_name: executable name
-    
+
     Returns:
         Dictionary containing pytest fixtures
     """
-    
+
     @pytest.fixture(scope="class")
     def click_env():
         """Click test environment fixture."""
         if env_instance:
             env_instance.make_testing_directory(env_instance.tempdir, clear=True)
         yield {
-            'env': env_instance,
-            'testdir': testdir,
-            'click_ep': click_ep,
-            'prog_name': prog_name,
-            'test_base_dir': TEST_BASE_DIR,
-            'temp_base_dir': TEMP_BASE_DIR,
+            "env": env_instance,
+            "testdir": testdir,
+            "click_ep": click_ep,
+            "prog_name": prog_name,
+            "test_base_dir": TEST_BASE_DIR,
+            "temp_base_dir": TEMP_BASE_DIR,
         }
-        
+
         # Cleanup - equivalent to tearDownClass
         if env_instance:
             msg = str(env_instance)
             env_instance.clear_log()
             if msg and env_instance.report_errors:
                 print(msg)
-    
+
     @pytest.fixture
     def do_test(click_env):
         """Fixture providing the do_test functionality."""
+
         def _do_test(
             args: Union[str, list[str]],
             testFileOrDirectory: Optional[str] = None,
@@ -75,18 +75,21 @@ def create_click_test_fixtures(env_instance: TestEnvironment, testdir: str, clic
         ) -> None:
             """Execute a command test (pytest version)"""
             return _do_click_test(
-                click_env, args, testFileOrDirectory,
+                click_env,
+                args,
+                testFileOrDirectory,
                 expected_error=expected_error,
                 filtr=filtr,
                 is_directory=is_directory,
                 add_yaml=add_yaml,
-                comparator=comparator
+                comparator=comparator,
             )
+
         return _do_test
-    
+
     return {
-        'click_env': click_env,
-        'do_test': do_test,
+        "click_env": click_env,
+        "do_test": do_test,
     }
 
 
@@ -102,11 +105,11 @@ def _do_click_test(
     comparator: Callable[[str, str], Optional[str]] = None,
 ) -> None:
     """Execute a command test (helper function)"""
-    env = click_env_data['env']
-    testdir = click_env_data['testdir']
-    click_ep = click_env_data['click_ep']
-    prog_name = click_env_data['prog_name']
-    
+    env = click_env_data["env"]
+    testdir = click_env_data["testdir"]
+    click_ep = click_env_data["click_ep"]
+    prog_name = click_env_data["prog_name"]
+
     assert testFileOrDirectory
     arg_list = shlex.split(args) if isinstance(args, str) else args
 
@@ -125,9 +128,7 @@ def _do_click_test(
         if is_directory:
             env.generate_directory(
                 target,
-                lambda target_dir: click_ep(
-                    arg_list + ["-d", target_dir], prog_name=prog_name, standalone_mode=False
-                ),
+                lambda target_dir: click_ep(arg_list + ["-d", target_dir], prog_name=prog_name, standalone_mode=False),
             )
         else:
             env.generate_single_file(
@@ -166,7 +167,7 @@ def _temp_file_path(env: TestEnvironment, testdir: str, *path: str, is_dir: bool
 def _temp_directory(env: TestEnvironment, base: str) -> str:
     """
     Create a temporary directory and return the path
-    
+
     :param env: TestEnvironment instance
     :param base: base directory name
     :return: directory path
@@ -232,49 +233,47 @@ def closein_comparison(expected_txt: str, actual_txt: str) -> None:
 class ClickTestCase:
     """
     DEPRECATED: Use create_click_test_fixtures() instead.
-    
+
     Legacy compatibility for ClickTestCase. This is kept for backward compatibility
     but new tests should use the create_click_test_fixtures() function instead.
-    
+
     Migration guide:
-    
+
     Old unittest style:
         class MyTest(ClickTestCase):
             env = TestEnvironment(__file__)
             testdir = "mytests"
             click_ep = my_entry_point
             prog_name = "myprog"
-            
+
             def test_something(self):
                 self.do_test("args", "output.txt")
-    
+
     New pytest style:
         env = TestEnvironment(__file__)
         click_fixtures = create_click_test_fixtures(env, "mytests", my_entry_point, "myprog")
         click_env = click_fixtures['click_env']
         do_test = click_fixtures['do_test']
-        
+
         class TestMy:
             def test_something(self, do_test):
                 do_test("args", "output.txt")
     """
-    
+
     def __init__(self):
         import warnings
-        warnings.warn(
-            "ClickTestCase is deprecated. Use create_click_test_fixtures() instead.",
-            DeprecationWarning,
-            stacklevel=2
-        )
 
+        warnings.warn(
+            "ClickTestCase is deprecated. Use create_click_test_fixtures() instead.", DeprecationWarning, stacklevel=2
+        )
 
 
 # Helper functions for easy migration from ClickTestCase
 def get_click_test_helpers(env: TestEnvironment, testdir: str):
     """Get helper functions for tests migrating from ClickTestCase."""
     return {
-        'source_file_path': lambda *path: _source_file_path(env, *path),
-        'expected_file_path': lambda *path: _expected_file_path(env, testdir, *path),
-        'temp_file_path': lambda *path, is_dir=False: _temp_file_path(env, testdir, *path, is_dir=is_dir),
-        'temp_directory': lambda base: _temp_directory(env, base),
+        "source_file_path": lambda *path: _source_file_path(env, *path),
+        "expected_file_path": lambda *path: _expected_file_path(env, testdir, *path),
+        "temp_file_path": lambda *path, is_dir=False: _temp_file_path(env, testdir, *path, is_dir=is_dir),
+        "temp_directory": lambda base: _temp_directory(env, base),
     }
