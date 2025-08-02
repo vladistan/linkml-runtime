@@ -158,9 +158,6 @@ classes:
 
   ProcedureConcept:
     is_a: Concept
-    slots:
-      - subtype
-
 
   OperationProcedureConcept:
     is_a: ProcedureConcept
