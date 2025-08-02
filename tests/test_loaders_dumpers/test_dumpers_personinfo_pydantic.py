@@ -19,7 +19,7 @@ def schema_path():
 @pytest.fixture(scope="module")
 def test_person():
     """Create test person with employment history."""
-    org_w = Organization(id="ROR:001", name="Widget Corp", description="A company that makes widgets")
+    org_w = Organization(id="WIDG:001", name="Widget Corp", description="A company that makes widgets")
     org_g = Organization(id="ROR:002", name="Gadget Corp", description="A company that makes gadgets")
     employment = [
         EmploymentEvent(
@@ -46,7 +46,12 @@ def schemaview(schema_path):
 
 def test_rdflib_dumper(test_person, schemaview):
     """Test serialization with rdflib_dumper"""
-    rdf_str = rdflib_dumper.dumps(test_person, schemaview=schemaview)
+    rdf_str = rdflib_dumper.dumps(
+        test_person, 
+        schemaview=schemaview,
+        prefix_map={ 
+            "WIDG": "http://example.org/widget/", 
+            "GADG": "http://example.org/gadget/" })
     assert isinstance(rdf_str, str)
     assert len(rdf_str) > 0
     
