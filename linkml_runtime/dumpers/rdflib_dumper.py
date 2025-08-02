@@ -190,7 +190,21 @@ class RDFLibDumper(Dumper):
 
     def _extract_element_vars(self, element: Any) -> dict:
         """Extract public attributes from element"""
+        # Handle primitive types and objects without __dict__
+        if not hasattr(element, '__dict__'):
+            return {}
         return {k: v for k, v in vars(element).items() if not k.startswith("_")}
+
+    def _get_class_name(self, element: Any) -> str:
+        """Get class name from element, handling both YAMLRoot and Pydantic models"""
+        element_type = type(element)
+        
+        # Try YAMLRoot-style class_name attribute first
+        if hasattr(element_type, 'class_name'):
+            return element_type.class_name
+        
+        # For Pydantic models, use the class name directly
+        return element_type.__name__
 
     def _handle_simple_identifier(self, element: Any, ctx: ConversionContext, target_type: ElementName) -> Node:
         """Handle objects with no properties - treat as simple identifier"""
@@ -199,8 +213,7 @@ class RDFLibDumper(Dumper):
 
     def _create_subject_uri(self, element: Any, ctx: ConversionContext) -> Node:
         """Create subject URI or blank node for the element"""
-        element_type = type(element)
-        cn = element_type.class_name
+        cn = self._get_class_name(element)
         id_slot = ctx.schemaview.get_identifier_slot(cn)
         
         # Create subject node: Use identifier if available, otherwise create blank node
@@ -213,13 +226,13 @@ class RDFLibDumper(Dumper):
 
     def _add_type_triple(self, subject_uri: Node, element: Any, ctx: ConversionContext):
         """Add rdf:type triple for the element"""
-        cn = type(element).class_name
+        cn = self._get_class_name(element)
         ctx.graph.add((subject_uri, RDF.type, URIRef(ctx.schemaview.get_uri(cn, expand=True))))
 
     def _process_element_properties(self, element: Any, element_vars: dict, ctx: ConversionContext, subject_uri: Node) -> bool:
         """Process all properties of an element, return whether type was added"""
         type_added = False
-        cn = type(element).class_name
+        cn = self._get_class_name(element)
         
         for prop_name, prop_value in element_vars.items():
             type_added |= self._process_single_property(
