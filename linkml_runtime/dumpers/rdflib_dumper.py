@@ -153,17 +153,30 @@ class RDFLibDumper(Dumper):
             return Literal(element)
 
     def _handle_complex_object(self, element: Any, schemaview: SchemaView, graph: Graph, target_type: ElementName = None) -> Node:
-        """Handle complex object conversion logic"""
-        # Extract all public attributes (non-underscore) from the object
-        element_vars = {k: v for k, v in vars(element).items() if not k.startswith("_")}
+        """Handle complex object conversion - now with better structure"""
+        element_vars = self._extract_element_vars(element)
+        if not element_vars:
+            return self._handle_simple_identifier(element, schemaview, target_type)
         
-        # Special case: If object has no properties, treat it as a simple identifier
-        if len(element_vars) == 0:
-            id_slot = schemaview.get_identifier_slot(target_type)
-            return self._as_uri(element, id_slot, schemaview)
-            # return URIRef(schemaview.expand_curie(str(element)))
+        subject_uri = self._create_subject_uri(element, schemaview)
+        type_added = self._process_element_properties(element, element_vars, schemaview, graph, subject_uri)
         
-        # Get the class name and determine the subject URI for this object
+        if not type_added:
+            self._add_type_triple(subject_uri, element, schemaview, graph)
+        
+        return subject_uri
+
+    def _extract_element_vars(self, element: Any) -> dict:
+        """Extract public attributes from element"""
+        return {k: v for k, v in vars(element).items() if not k.startswith("_")}
+
+    def _handle_simple_identifier(self, element: Any, schemaview: SchemaView, target_type: ElementName) -> Node:
+        """Handle objects with no properties - treat as simple identifier"""
+        id_slot = schemaview.get_identifier_slot(target_type)
+        return self._as_uri(element, id_slot, schemaview)
+
+    def _create_subject_uri(self, element: Any, schemaview: SchemaView) -> Node:
+        """Create subject URI or blank node for the element"""
         element_type = type(element)
         cn = element_type.class_name
         id_slot = schemaview.get_identifier_slot(cn)
@@ -171,13 +184,20 @@ class RDFLibDumper(Dumper):
         # Create subject node: Use identifier if available, otherwise create blank node
         if id_slot is not None:
             element_id = getattr(element, id_slot.name)
-            element_uri = self._as_uri(element_id, id_slot, schemaview)
+            return self._as_uri(element_id, id_slot, schemaview)
         else:
             # No identifier slot - use anonymous blank node
-            element_uri = BNode()
-        
-        # Track whether we've added a type triple (to avoid duplication)
+            return BNode()
+
+    def _add_type_triple(self, subject_uri: Node, element: Any, schemaview: SchemaView, graph: Graph):
+        """Add rdf:type triple for the element"""
+        cn = type(element).class_name
+        graph.add((subject_uri, RDF.type, URIRef(schemaview.get_uri(cn, expand=True))))
+
+    def _process_element_properties(self, element: Any, element_vars: dict, schemaview: SchemaView, graph: Graph, subject_uri: Node) -> bool:
+        """Process all properties of an element, return whether type was added"""
         type_added = False
+        cn = type(element).class_name
         slot_name_map = schemaview.slot_name_mappings()
         
         # Process each property of the object
@@ -214,18 +234,13 @@ class RDFLibDumper(Dumper):
                     v_node = self.inject_triples(v, schemaview, graph, slot.range)
                     
                     # Add the triple: subject predicate object
-                    graph.add((element_uri, slot_uri, v_node))
+                    graph.add((subject_uri, slot_uri, v_node))
                     
                     # Check if this slot implies the type (e.g., rdf:type)
                     if slot.designates_type:
                         type_added = True
         
-        # Add rdf:type triple if not already added by a designates_type slot
-        if not type_added:
-            graph.add((element_uri, RDF.type, URIRef(schemaview.get_uri(cn, expand=True))))
-        
-        # Return the subject node for use in parent context
-        return element_uri
+        return type_added
 
     def dump(
         self,
