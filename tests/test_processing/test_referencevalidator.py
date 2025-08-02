@@ -1083,7 +1083,7 @@ def test_line_number():
     assert 1 == len(report.results_excluding_normalized())
     r = report.results_excluding_normalized()[0]
     assert 3 == r.source_line_number
-    assert 8 == r.source_column_number
+    assert 4 == r.source_column_number
 
 
 def test_examples_against_metamodel():
