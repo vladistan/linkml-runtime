@@ -41,34 +41,35 @@ SYMP = Namespace("http://purl.obolibrary.org/obo/SYMP_")
 WD = Namespace("http://www.wikidata.org/entity/")
 
 
-@pytest.fixture(scope="module") 
+@pytest.fixture(scope="module")
 def loader_dumper_setup():
     """Set up loader/dumper test environment with round-trip testing."""
     view = SchemaView(SCHEMA)
     container: Container
     container = yaml_loader.load(DATA, target_class=Container)
     _check_objs(view, container)
-    
+
     # Test RDF round-trip
     test_fn = OUT_TTL
     rdflib_dumper.dump(container, schemaview=view, to_file=test_fn, prefix_map=prefix_map)
     container = rdflib_loader.load(test_fn, target_class=Container, schemaview=view, prefix_map=prefix_map)
     _check_objs(view, container)
-    
+
     # Test JSON round-trip
     test_fn = OUT_JSON
     json_dumper.dump(container, to_file=test_fn)
     container = json_loader.load(test_fn, target_class=Container)
     _check_objs(view, container)
-    
+
     # Test YAML round-trip
     test_fn = OUT_YAML
     yaml_dumper.dump(container, to_file=test_fn)
     container = yaml_loader.load(test_fn, target_class=Container)
     _check_objs(view, container)
     # TODO: use jsonpatch to compare files
-    
-    return {'view': view, 'container': container}
+
+    return {"view": view, "container": container}
+
 
 def test_load_from_list(loader_dumper_setup):
     """
@@ -93,6 +94,7 @@ def test_load_from_list(loader_dumper_setup):
         assert p1.gender.code.text == "cisgender man"
         assert p2.gender.code.text == "transgender man"
 
+
 def test_encoding(loader_dumper_setup):
     """
     This will reveal if generated yaml or json files are utf-8 encoded
@@ -107,6 +109,7 @@ def test_encoding(loader_dumper_setup):
     with open(OUT_JSON, encoding="UTF-8") as f:
         [p2_name_line] = [l for l in f.readlines() if "joe schm" in l]
     assert "joe schmö" in p2_name_line
+
 
 def _check_objs(view: SchemaView, container: Container):
     """Helper function to check container objects."""
@@ -147,6 +150,7 @@ def _check_objs(view: SchemaView, container: Container):
     assert o3.score == Decimal(1)
     assert o4.score == Decimal(1)
     assert o1.min_salary == Decimal("99999.00")
+
 
 def test_edge_cases(loader_dumper_setup):
     """

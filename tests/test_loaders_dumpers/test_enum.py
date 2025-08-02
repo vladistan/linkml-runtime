@@ -21,19 +21,19 @@ def test_enum():
     print(i.state.code.text)
     print(type(i.state))
     print(StateEnum.LIVING)
-    
+
     # Test string representation and enum code
     assert str(i.state) == "LIVING"
     assert i.state.code == StateEnum.LIVING
-    
+
     # Test JSON dumping/loading
     obj = json.loads(json_dumper.dumps(i))
     assert obj["state"] == "LIVING"
-    
+
     # Test YAML dumping
     obj = yaml.safe_load(yaml_dumper.dumps(i))
     assert obj["state"] == "LIVING"
-    
+
     # Test round-trip JSON serialization
     reconstituted = json_loader.loads(json_dumper.dumps(i), target_class=Organism)
     print(f"RECONSTITUTED = {reconstituted}")

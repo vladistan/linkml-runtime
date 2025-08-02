@@ -23,7 +23,7 @@ def test_disjunction(rules_schema):
     disj = get_range_as_disjunction(analyte)
     # print(disj)
     assert sorted(disj) == sorted({"MissingValueEnum", "AnalyteEnum"})
-    
+
     # Test all slots for debugging
     for s in rules_schema.all_slots().values():
         disj = get_range_as_disjunction(s)

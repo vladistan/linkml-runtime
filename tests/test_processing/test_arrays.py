@@ -26,7 +26,7 @@ def matrix_data():
 def test_array_normalization(normalizer, matrix_data):
     """
     Test that we can infer the collection form of a slot.
-    
+
     Tests array normalization functionality.
     See: https://linkml.io/linkml/howtos/multidimensional-arrays
     """

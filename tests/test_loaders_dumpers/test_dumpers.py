@@ -148,13 +148,10 @@ def test_nested_contexts(test_package):
 
     if not context_servers:
         pytest.skip(
-            f"*****> Nested contexts test skipped - no servers found on sockets "
-            f"{HTTP_TEST_PORT} or {HTTPS_TEST_PORT}"
+            f"*****> Nested contexts test skipped - no servers found on sockets {HTTP_TEST_PORT} or {HTTPS_TEST_PORT}"
         )
 
     for context_base in context_servers:
         nested_context = context_base + "Package.context.jsonld"
-        dump_test(
-            "obo_sample_nested.ttl", lambda out_file: rdf_dumper.dump(test_package, out_file, nested_context)
-        )
+        dump_test("obo_sample_nested.ttl", lambda out_file: rdf_dumper.dump(test_package, out_file, nested_context))
         dumps_test("obo_sample_nested.ttl", lambda: rdf_dumper.dumps(test_package, nested_context))

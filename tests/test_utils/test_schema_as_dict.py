@@ -4,7 +4,6 @@ import os
 import pytest
 
 from linkml_runtime.linkml_model.meta import ClassDefinition
-from linkml_runtime.loaders.yaml_loader import YAMLLoader
 from linkml_runtime.utils.schema_as_dict import schema_as_dict, schema_as_yaml_dump
 from linkml_runtime.utils.schema_builder import ClassDefinition, SchemaBuilder, SlotDefinition
 from linkml_runtime.utils.schemaview import SchemaView
@@ -17,7 +16,6 @@ logger = logging.getLogger(__name__)
 def schema_no_imports_path():
     """Path to kitchen sink schema without imports."""
     return os.path.join(INPUT_DIR, "kitchen_sink_noimports.yaml")
-
 
 
 @pytest.fixture

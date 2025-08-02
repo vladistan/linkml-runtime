@@ -1,7 +1,6 @@
 import os
 from typing import Union
 
-import pytest
 from hbreader import FileInfo
 from pydantic import BaseModel
 
@@ -36,13 +35,11 @@ def loader_test(filename: str, model: Union[type[YAMLRoot], type[BaseModel]], lo
 
     # Make sure metadata gets filled out properly
     rel_path = os.path.abspath(os.path.join(test_base.env.cwd, ".."))
-    assert (
-        os.path.normpath("tests/test_loaders_dumpers/input") == 
-        os.path.normpath(os.path.relpath(metadata.base_path, rel_path))
+    assert os.path.normpath("tests/test_loaders_dumpers/input") == os.path.normpath(
+        os.path.relpath(metadata.base_path, rel_path)
     )
-    assert (
-        os.path.normpath(f"tests/test_loaders_dumpers/input/{filename}") == 
-        os.path.normpath(os.path.relpath(metadata.source_file, rel_path))
+    assert os.path.normpath(f"tests/test_loaders_dumpers/input/{filename}") == os.path.normpath(
+        os.path.relpath(metadata.source_file, rel_path)
     )
 
 

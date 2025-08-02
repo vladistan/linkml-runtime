@@ -118,6 +118,7 @@ def prefix_map():
     """Standard prefix map for rdflib dumper tests."""
     return PREFIX_MAP
 
+
 def test_rdflib_dumper(prefix_map):
     """Test the RDFLib dumper functionality."""
     view = SchemaView(SCHEMA)
@@ -132,12 +133,8 @@ def test_rdflib_dumper(prefix_map):
     assert (P["001"], SDO.email, Literal("fred.bloggs@example.com")) in g
     assert (P["001"], INFO.age_in_years, Literal(33)) in g
     assert (P["001"], SDO.gender, GSSO["000371"]) in g
-    assert (
-        P["001"], INFO.depicted_by, Literal("https://example.org/pictures/fred.jpg", datatype=XSD.anyURI)
-    ) in g
-    assert (
-        P["001"], INFO.depicted_by, Literal("https://example.org/pictures/fred.jpg", datatype=XSD.string)
-    ) not in g
+    assert (P["001"], INFO.depicted_by, Literal("https://example.org/pictures/fred.jpg", datatype=XSD.anyURI)) in g
+    assert (P["001"], INFO.depicted_by, Literal("https://example.org/pictures/fred.jpg", datatype=XSD.string)) not in g
     # for (s,p,o) in g.triples((None, None, None)):
     #    print(f'{s} {p} {o}')
     assert (CODE["D0001"], RDF.type, INFO.DiagnosisConcept) in g
@@ -151,13 +148,12 @@ def test_rdflib_dumper(prefix_map):
     assert (container, INFO.organizations, ROR["2"]) in g
     assert (container, INFO.persons, P["001"]) in g
     assert (container, INFO.persons, P["002"]) in g
-    container: Container = rdflib_loader.load(
-        OUT, target_class=Container, schemaview=view, prefix_map=prefix_map
-    )
+    container: Container = rdflib_loader.load(OUT, target_class=Container, schemaview=view, prefix_map=prefix_map)
     _check_objs(view, container)
     # print(yaml_dumper.dumps(container))
     # person = next(p for p in container.persons if p.id == 'P:002')
     # mh = person.has_medical_history[0]
+
 
 def test_enums(prefix_map):
     """Test enum handling in RDFLib dumper."""
@@ -180,6 +176,7 @@ def test_enums(prefix_map):
     print(catsx)
     assert sorted([org1type1, org1type2], key=str) == sorted(catsx, key=str)
 
+
 def test_undeclared_prefix_raises_error():
     """Test that undeclared prefixes raise exceptions."""
     view = SchemaView(SCHEMA)
@@ -189,6 +186,7 @@ def test_undeclared_prefix_raises_error():
     org1 = Organization("http://example.org/foo/o1")
     rdflib_dumper.as_rdf_graph(org1, schemaview=view)
 
+
 def test_base_prefix():
     """Test base prefix functionality."""
     view = SchemaView(SCHEMA)
@@ -197,16 +195,16 @@ def test_base_prefix():
     g = rdflib_dumper.as_rdf_graph(org1, schemaview=view)
     assert (URIRef("http://example.org/foo"), RDF.type, SDO.Organization) in g
 
+
 def test_rdflib_loader(prefix_map):
     """
     tests loading from an RDF graph
     """
     view = SchemaView(SCHEMA)
-    container: Container = rdflib_loader.load(
-        DATA_TTL, target_class=Container, schemaview=view, prefix_map=prefix_map
-    )
+    container: Container = rdflib_loader.load(DATA_TTL, target_class=Container, schemaview=view, prefix_map=prefix_map)
     _check_objs(view, container)
     yaml_dumper.dump(container, to_file=DATA_ROUNDTRIP)
+
 
 def test_unmapped_predicates(prefix_map):
     """
@@ -216,9 +214,7 @@ def test_unmapped_predicates(prefix_map):
     view = SchemaView(SCHEMA)
     # default behavior is to raise error on unmapped predicates
     with pytest.raises(MappingError):
-        rdflib_loader.loads(
-            unmapped_predicates_test_ttl, target_class=Person, schemaview=view, prefix_map=prefix_map
-        )
+        rdflib_loader.loads(unmapped_predicates_test_ttl, target_class=Person, schemaview=view, prefix_map=prefix_map)
     # called can explicitly allow unmapped predicates to be dropped
     person: Person = rdflib_loader.loads(
         unmapped_predicates_test_ttl,
@@ -232,15 +228,14 @@ def test_unmapped_predicates(prefix_map):
     assert str(person.gender) == "cisgender man"
     yaml_dumper.dump(person, to_file=UNMAPPED_ROUNDTRIP)
 
+
 def test_any_of_enum(prefix_map):
     """
     Tests https://github.com/linkml/linkml/issues/1023
     """
     view = SchemaView(SCHEMA)
     # default behavior is to raise error on unmapped predicates
-    person = rdflib_loader.loads(
-        enum_union_type_test_ttl, target_class=Person, schemaview=view, prefix_map=prefix_map
-    )
+    person = rdflib_loader.loads(enum_union_type_test_ttl, target_class=Person, schemaview=view, prefix_map=prefix_map)
     assert person.id == "P:001"
     assert person.age_in_years == 33
     yaml_dumper.dump(person, to_file=UNMAPPED_ROUNDTRIP)
@@ -253,6 +248,7 @@ def test_any_of_enum(prefix_map):
         tups.append((r.related_to, r.type))
     assert sorted(cases) == sorted(tups)
 
+
 def test_unmapped_type(prefix_map):
     """
     If a type cannot be mapped then no objects will be returned by load/from_rdf_graph
@@ -260,13 +256,12 @@ def test_unmapped_type(prefix_map):
     view = SchemaView(SCHEMA)
     # default behavior is to raise error on unmapped predicates
     with pytest.raises(DataNotFoundError):
-        rdflib_loader.loads(
-            unmapped_type_test_ttl, target_class=Person, schemaview=view, prefix_map=prefix_map
-        )
+        rdflib_loader.loads(unmapped_type_test_ttl, target_class=Person, schemaview=view, prefix_map=prefix_map)
     graph = Graph()
     graph.parse(data=unmapped_type_test_ttl, format="ttl")
     objs = rdflib_loader.from_rdf_graph(graph, target_class=Person, schemaview=view, prefix_map=prefix_map)
     assert len(objs) == 0
+
 
 def test_blank_node(prefix_map):
     """
@@ -291,6 +286,7 @@ def test_blank_node(prefix_map):
     assert (bn, RDF.type, SDO.PostalAddress) in g
     assert (bn, INFO.city, Literal("foo city")) in g
     assert (bn, INFO.street, Literal("1 foo street")) in g
+
 
 def _check_objs(view: SchemaView, container: Container):
     """Helper function to check container objects."""
@@ -323,6 +319,7 @@ def _check_objs(view: SchemaView, container: Container):
     assert med.diagnosis.id == "CODE:D0001"
     assert med.diagnosis.name == "headache"
     assert med.diagnosis.code_system == "CODE:D"
+
 
 def test_edge_cases():
     """
@@ -397,6 +394,7 @@ def test_edge_cases():
         )
         logger.error("Passed unexpectedly: rdf:object is known to have a mix of literals and nodes")
 
+
 def test_phenopackets(prefix_map):
     """Test phenopackets functionality."""
     view = SchemaView(str(Path(INPUT_DIR) / "phenopackets" / "phenopackets.yaml"))
@@ -418,9 +416,9 @@ def test_phenopackets(prefix_map):
         g = Graph()
         g.parse(data=ttl, format="ttl")
         assert len(g) == 2
-        assert (
-            Literal(test_label) in list(g.objects(URIRef(expected_uri)))
-        ), f"Expected label {test_label} for {expected_uri} in {ttl}"
+        assert Literal(test_label) in list(g.objects(URIRef(expected_uri))), (
+            f"Expected label {test_label} for {expected_uri} in {ttl}"
+        )
         pf = PhenotypicFeature(type=c)
         pkt = Phenopacket(
             id="id with spaces",
@@ -430,9 +428,9 @@ def test_phenopackets(prefix_map):
         ttl = rdflib_dumper.dumps(pkt, view, prefix_map=prefix_map)
         g = Graph()
         g.parse(data=ttl, format="ttl")
-        assert (
-            Literal(test_label) in list(g.objects(URIRef(expected_uri)))
-        ), f"Expected label {test_label} for {expected_uri} in {ttl}"
+        assert Literal(test_label) in list(g.objects(URIRef(expected_uri))), (
+            f"Expected label {test_label} for {expected_uri} in {ttl}"
+        )
         if test_prefix_map and "@base" in test_prefix_map:
             resource_uri = URIRef(test_prefix_map["@base"] + "id%20with%20spaces")
             assert len(list(g.objects(resource_uri))) == 1
@@ -464,6 +462,7 @@ def issue_429_graph():
     g.parse(OUT_429, format="ttl")
     return g
 
+
 def test_rdf_output(issue_429_graph):
     """Test RDF output for issue 429."""
     g = issue_429_graph
@@ -475,6 +474,7 @@ def test_rdf_output(issue_429_graph):
     assert (ORCID["4567"], personinfo.full_name, Literal("Lois Lane")) in g
     assert (ORCID["4567"], personinfo.age, Literal("33")) in g
     assert (ORCID["4567"], personinfo.phone, Literal("555-555-5555")) in g
+
 
 def test_output_prefixes():
     """Test output prefixes for issue 429."""

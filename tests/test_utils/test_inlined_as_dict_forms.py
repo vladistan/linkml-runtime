@@ -8,13 +8,13 @@ def test_empty_dict_forms():
     """Test various empty dictionary forms"""
     v = E()
     assert v.ev == {}, "No entries, period"
-    
+
     v = E({})
     assert v.ev == {}, "Default is empty dictionary"
-    
+
     v = E([])
     assert v.ev == {}, "Empty list becomes empty dictionary"
-    
+
     v = E(JsonObj())
     assert v.ev == {}, "Empty JsonObj becomes empty dictionary"
 
@@ -85,20 +85,19 @@ def test_positional_object_values():
 def test_list_of_kv_dictionaries():
     """Test Form 7: list of key-value dictionaries"""
     v = E([{"s1": "v11", "s2": "v12"}, {"s1": "v21", "s2": "v22", "s3": "v23"}])
-    assert v.ev == {
-        "v11": EInst(s1="v11", s2="v12", s3=None), 
-        "v21": EInst(s1="v21", s2="v22", s3="v23")
-    }
+    assert v.ev == {"v11": EInst(s1="v11", s2="v12", s3=None), "v21": EInst(s1="v21", s2="v22", s3="v23")}
 
 
 def test_dict_key_object_form():
     """Test Form 1: dictionary with key/object pairs"""
-    v = E({
-        "k1": EInst(s1="k1", s2="v21", s3="v23"),
-        "k2": JsonObj({"s2": "v22", "s3": "v23"}),
-        "k3": {"s2": "v32", "s3": "v33"},
-        "k4": {"s1": "k4"},
-    })
+    v = E(
+        {
+            "k1": EInst(s1="k1", s2="v21", s3="v23"),
+            "k2": JsonObj({"s2": "v22", "s3": "v23"}),
+            "k3": {"s2": "v32", "s3": "v33"},
+            "k4": {"s1": "k4"},
+        }
+    )
     assert v.ev == {
         "k1": EInst(s1="k1", s2="v21", s3="v23"),
         "k2": EInst(s1="k2", s2="v22", s3="v23"),
@@ -132,14 +131,14 @@ def test_single_object_dict_multiple_fields():
 def test_is_empty_method():
     """Test _is_empty method with various inputs"""
     base = E()
-    
+
     # Test empty values
     assert base._is_empty(None)
     assert base._is_empty([])
     assert base._is_empty({})
     assert base._is_empty(JsonObj())
     assert base._is_empty(JsonObj([]))
-    
+
     # Test non-empty values
     assert not base._is_empty(0)
     assert not base._is_empty("")
