@@ -203,7 +203,13 @@ class RDFLibDumper(Dumper):
         if hasattr(element_type, 'class_name'):
             return element_type.class_name
         
-        # For Pydantic models, use the class name directly
+        # For Pydantic models, check linkml_meta for the proper class name
+        if hasattr(element_type, 'linkml_meta'):
+            linkml_meta = element_type.linkml_meta
+            if hasattr(linkml_meta, 'root') and 'name' in linkml_meta.root:
+                return linkml_meta.root['name']
+        
+        # Fallback to Python class name
         return element_type.__name__
 
     def _handle_simple_identifier(self, element: Any, ctx: ConversionContext, target_type: ElementName) -> Node:
