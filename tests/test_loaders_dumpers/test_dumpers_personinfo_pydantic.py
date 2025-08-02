@@ -25,8 +25,8 @@ def context_path():
 @pytest.fixture(scope="module")
 def test_person():
     """Create test person with employment history."""
-    org_w = Organization(id="WIDG:001", name="Widget Corp", description="A company that makes widgets")
-    org_g = Organization(id="GIDG:001", name="Gadget Corp", description="A company that makes gadgets")
+    org_w = Organization(id="ROR:001", name="Widget Corp", description="A company that makes widgets")
+    org_g = Organization(id="ROR:002", name="Gadget Corp", description="A company that makes gadgets")
     employment = [
         EmploymentEvent(
             employed_at=org_w.id,
@@ -49,7 +49,7 @@ def schemaview(schema_path):
     return SchemaView(schema_path)
 
 
-def _test_rdf_dumper(test_person, context_path):
+def test_rdf_dumper(test_person, context_path):
     """Test serialization with rdf_dumper"""
     rdf_str = rdf_dumper.dumps(test_person, contexts=context_path)
     assert isinstance(rdf_str, str)
@@ -57,7 +57,7 @@ def _test_rdf_dumper(test_person, context_path):
     assert "Alice Smith" in rdf_str
 
 
-def _test_rdflib_dumper(test_person, schemaview):
+def test_rdflib_dumper(test_person, schemaview):
     """Test serialization with rdflib_dumper"""
     rdf_str = rdflib_dumper.dumps(test_person, schemaview=schemaview)
     assert isinstance(rdf_str, str)
