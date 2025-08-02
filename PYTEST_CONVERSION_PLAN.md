@@ -581,7 +581,7 @@
 class TestCase(unittest.TestCase):
     def setUp(self):
         self.data = load_data()
-    
+
     def tearDown(self):
         cleanup()
 

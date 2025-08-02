@@ -24,6 +24,14 @@ class RDFLibDumper(Dumper):
 
     This requires a SchemaView object
 
+    The conversion process follows this general flow:
+    1. Create an RDF graph with appropriate namespace bindings
+    2. Recursively traverse the object structure, converting each element to RDF
+    3. Handle three main cases during conversion:
+       - Enums: Convert to URIs (if they have meanings) or Literals
+       - Types: Convert to appropriately typed RDF Literals
+       - Complex Objects: Create subject-predicate-object triples for each property
+
     """
 
     def as_rdf_graph(
@@ -41,31 +49,43 @@ class RDFLibDumper(Dumper):
         :param prefix_map:
         :return:
         """
+        # Initialize empty RDF graph
         g = Graph()
+
+        # Handle different prefix map formats
         if isinstance(prefix_map, Converter):
             # TODO replace with `prefix_map = prefix_map.bimap` after making minimum requirement on python 3.8
             prefix_map = {record.prefix: record.uri_prefix for record in prefix_map.records}
         logger.debug(f"PREFIXMAP={prefix_map}")
+
+        # Get schema namespaces and merge with any provided prefix map
         namespaces = schemaview.namespaces()
         if prefix_map:
             for k, v in prefix_map.items():
                 if k == "@base":
+                    # Special handling for base URI
                     namespaces._base = v
                 else:
+                    # Add prefix to both namespace manager and graph bindings
                     namespaces[k] = v
                     g.namespace_manager.bind(k, URIRef(v))
 
+        # Bind all namespaces to the graph
         for prefix in namespaces:
             g.bind(prefix, URIRef(namespaces[prefix]))
+
+        # Handle alternate base URI syntax
         # user can pass in base in prefixmap using '_base'. This gets set
         # in namespaces as a plain dict assignment - explicitly call the setter
         # to set the underlying "@base"
         if "_base" in namespaces:
             namespaces._base = namespaces["_base"]
 
+        # Set graph base URI if specified
         if namespaces._base:
             g.base = namespaces._base
 
+        # Recursively convert the element to RDF triples
         self.inject_triples(element, schemaview, g)
         return g
 
@@ -84,69 +104,113 @@ class RDFLibDumper(Dumper):
         namespaces = schemaview.namespaces()
         slot_name_map = schemaview.slot_name_mappings()
         logger.debug(f"CONVERT: {element} // {type(element)} // {target_type}")
+
+        # CASE 1: Handle Enums - Convert enum values to URIs (if they have meanings) or Literals
         if target_type in schemaview.all_enums():
+            # Handle different forms of enum values
             if isinstance(element, PermissibleValueText):
+                # If it's just text, look up the full PermissibleValue object
                 e = schemaview.get_enum(target_type)
                 element = e.permissible_values[element]
             else:
+                # Otherwise extract the code from the enum object
                 element = element.code
             element: PermissibleValue
+
+            # Convert to RDF: Use URI if enum has meaning (e.g., ontology term), otherwise plain literal
             if element.meaning is not None:
                 return URIRef(schemaview.expand_curie(element.meaning))
             else:
                 return Literal(element.text)
+        # CASE 2: Handle Types - Convert primitive types to appropriate RDF Literals
         if target_type in schemaview.all_types():
             t = schemaview.get_type(target_type)
             dt_uri = t.uri
             if dt_uri:
+                # Special handling for specific types
                 if dt_uri == "rdfs:Resource":
+                    # Resources become URIs
                     return URIRef(schemaview.expand_curie(element))
                 elif dt_uri == "xsd:string":
+                    # Strings become plain literals
                     return Literal(element)
                 else:
+                    # Other types (integers, dates, etc.) become typed literals
                     if "xsd" not in namespaces:
                         namespaces["xsd"] = XSD
                     return Literal(element, datatype=namespaces.uri_for(dt_uri))
             else:
+                # Fallback for types without specified URIs
                 logger.warning(f"No datatype specified for : {t.name}, using plain Literal")
                 return Literal(element)
+        # CASE 3: Handle Complex Objects - Convert objects with properties to RDF triples
+        # Extract all public attributes (non-underscore) from the object
         element_vars = {k: v for k, v in vars(element).items() if not k.startswith("_")}
+
+        # Special case: If object has no properties, treat it as a simple identifier
         if len(element_vars) == 0:
             id_slot = schemaview.get_identifier_slot(target_type)
             return self._as_uri(element, id_slot, schemaview)
             # return URIRef(schemaview.expand_curie(str(element)))
+        # Get the class name and determine the subject URI for this object
         element_type = type(element)
         cn = element_type.class_name
         id_slot = schemaview.get_identifier_slot(cn)
+
+        # Create subject node: Use identifier if available, otherwise create blank node
         if id_slot is not None:
             element_id = getattr(element, id_slot.name)
             element_uri = self._as_uri(element_id, id_slot, schemaview)
         else:
+            # No identifier slot - use anonymous blank node
             element_uri = BNode()
+        # Track whether we've added a type triple (to avoid duplication)
         type_added = False
+
+        # Process each property of the object
         for k, v_or_list in element_vars.items():
+            # Normalize values to a list for uniform processing
             if isinstance(v_or_list, list):
                 vs = v_or_list
             elif isinstance(v_or_list, dict):
+                # For dict-valued slots, use the values (keys are identifiers)
                 vs = v_or_list.values()
             else:
                 vs = [v_or_list]
+
+            # Process each value for this property
             for v in vs:
                 if v is None:
                     continue
+
+                # Map Python attribute name to schema slot name if needed
                 if k in slot_name_map:
                     k = slot_name_map[k].name
                 else:
                     logger.error(f"Slot {k} not in name map")
+
+                # Get the slot definition with all inherited properties
                 slot = schemaview.induced_slot(k, cn)
+
+                # Skip identifier slots (already used as subject URI)
                 if not slot.identifier:
+                    # Create predicate URI from slot
                     slot_uri = URIRef(schemaview.get_uri(slot, expand=True))
+
+                    # Recursively convert the value based on its expected type
                     v_node = self.inject_triples(v, schemaview, graph, slot.range)
+
+                    # Add the triple: subject predicate object
                     graph.add((element_uri, slot_uri, v_node))
+
+                    # Check if this slot implies the type (e.g., rdf:type)
                     if slot.designates_type:
                         type_added = True
+        # Add rdf:type triple if not already added by a designates_type slot
         if not type_added:
             graph.add((element_uri, RDF.type, URIRef(schemaview.get_uri(cn, expand=True))))
+
+        # Return the subject node for use in parent context
         return element_uri
 
     def dump(
@@ -189,7 +253,10 @@ class RDFLibDumper(Dumper):
         return self.as_rdf_graph(element, schemaview, prefix_map=prefix_map).serialize(format=fmt)
 
     def _as_uri(self, element_id: str, id_slot: Optional[SlotDefinition], schemaview: SchemaView) -> URIRef:
+        """Convert an identifier to a URI, with optional percent-encoding"""
         if id_slot and schemaview.is_slot_percent_encoded(id_slot):
+            # Percent-encode the identifier if the slot requires it
             return URIRef(urllib.parse.quote(element_id))
         else:
+            # Otherwise, use standard CURIE expansion
             return schemaview.namespaces().uri_for(element_id)
