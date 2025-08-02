@@ -52,7 +52,6 @@ classes:
       - id
       - name
       - description
-      - image
       - depicted_by
     close_mappings:
      - schema:Thing
@@ -77,6 +76,10 @@ classes:
     slot_usage:
       primary_email:
         pattern: "^\\S+@[\\S+\\.]+\\S+"
+      age_in_years:
+        recommended: true
+    in_subset:
+      - basic_subset
 
   HasAliases:
     description: >-
@@ -115,8 +118,6 @@ classes:
           slot_conditions:
             min_salary:
               maximum_value: 80000.00
-
-
 
   Place:
     mixins:
@@ -157,9 +158,6 @@ classes:
 
   ProcedureConcept:
     is_a: Concept
-    slots:
-      - subtype
-
 
   OperationProcedureConcept:
     is_a: ProcedureConcept
@@ -219,19 +217,12 @@ classes:
     slots:
       - in location
 
+  # TODO: annotate that this is a container/root class
   Container:
     tree_root: true
-    attributes:
-      persons:
-        range: Person
-        inlined: true
-        inlined_as_list: true
-        multivalued: true
-      organizations:
-        range: Organization
-        inlined_as_list: false
-        inlined: true
-        multivalued: true
+    slots:
+      - persons
+      - organizations
 
 slots:
   id:
@@ -287,13 +278,10 @@ slots:
     minimum_value: 0.0
     maximum_value: 5.0
   related_to:
-    range: NamedThing
+    range: Person
   depicted_by:
     range: ImageURL
   type:
-  subtype:
-    designates_type: true
-    range: Concept
   street:
   city:
   mission_statement:
@@ -318,6 +306,16 @@ slots:
     slot_uri: prov:endedAtTime
     range: date
 
+  persons:
+    range: Person
+    inlined: true
+    inlined_as_list: true
+    multivalued: true
+  organizations:
+    range: Organization
+    inlined_as_list: true
+    inlined: true
+    multivalued: true
   categories:
     multivalued: true
 
@@ -335,7 +333,7 @@ enums:
       PARENT_OF:
         meaning: famrel:02
       CHILD_OF:
-        meaning: famrel:01
+        meaning: famrel:03
   NonFamilialRelationshipType:
     permissible_values:
       COWORKER_OF:
@@ -370,3 +368,7 @@ enums:
         meaning: bizcodes:001
       shell company:
       loose organization:
+
+subsets:
+  basic_subset:
+    description: A subset of the schema that handles basic information

@@ -6,8 +6,8 @@ from jsonasobj2 import as_dict
 from linkml_runtime.linkml_model import ClassDefinition, SchemaDefinition
 from linkml_runtime.utils.walker_utils import traverse_object_tree
 from linkml_runtime.utils.yamlutils import YAMLRoot
+from linkml_runtime.loaders import yaml_loader
 from tests.test_utils import INPUT_DIR
-from tests.test_utils.test_ruleutils import yaml_loader
 
 SCHEMA = os.path.join(INPUT_DIR, "kitchen_sink_noimports.yaml")
 INSERTED_COMMENT = "INSERTED COMMENT"
