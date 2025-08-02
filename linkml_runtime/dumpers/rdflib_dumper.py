@@ -200,45 +200,63 @@ class RDFLibDumper(Dumper):
         cn = type(element).class_name
         slot_name_map = schemaview.slot_name_mappings()
         
-        # Process each property of the object
-        for k, v_or_list in element_vars.items():
-            # Normalize values to a list for uniform processing
-            if isinstance(v_or_list, list):
-                vs = v_or_list
-            elif isinstance(v_or_list, dict):
-                # For dict-valued slots, use the values (keys are identifiers)
-                vs = v_or_list.values()
-            else:
-                vs = [v_or_list]
+        for prop_name, prop_value in element_vars.items():
+            type_added |= self._process_single_property(
+                prop_name, prop_value, cn, schemaview, graph, subject_uri, slot_name_map
+            )
+        return type_added
+
+    def _process_single_property(self, prop_name: str, prop_value: Any, class_name: str, schemaview: SchemaView, graph: Graph, subject_uri: Node, slot_name_map: dict) -> bool:
+        """Process a single property, return whether it designated type"""
+        values = self._normalize_property_values(prop_value)
+        
+        # Map Python attribute name to schema slot name if needed - preserving original behavior
+        slot_name = prop_name
+        if prop_name in slot_name_map:
+            slot_name = slot_name_map[prop_name].name
+        else:
+            logger.error(f"Slot {prop_name} not in name map")
+        
+        # Use try/catch to handle missing slots gracefully like the original
+        try:
+            slot = schemaview.induced_slot(slot_name, class_name)
+        except ValueError:
+            # If slot not found, skip this property (matches original behavior when error occurs)
+            return False
+        
+        if slot.identifier:
+            return False  # Skip identifier slots
+        
+        return self._add_property_triples(values, slot, schemaview, graph, subject_uri)
+
+    def _normalize_property_values(self, prop_value: Any) -> list:
+        """Normalize property values to a list for uniform processing"""
+        if isinstance(prop_value, list):
+            return prop_value
+        elif isinstance(prop_value, dict):
+            # For dict-valued slots, use the values (keys are identifiers)
+            return list(prop_value.values())
+        else:
+            return [prop_value]
+
+    def _add_property_triples(self, values: list, slot: Any, schemaview: SchemaView, graph: Graph, subject_uri: Node) -> bool:
+        """Add triples for all values of a property"""
+        type_added = False
+        slot_uri = URIRef(schemaview.get_uri(slot, expand=True))
+        
+        for v in values:
+            if v is None:
+                continue
             
-            # Process each value for this property
-            for v in vs:
-                if v is None:
-                    continue
-                
-                # Map Python attribute name to schema slot name if needed
-                if k in slot_name_map:
-                    k = slot_name_map[k].name
-                else:
-                    logger.error(f"Slot {k} not in name map")
-                
-                # Get the slot definition with all inherited properties
-                slot = schemaview.induced_slot(k, cn)
-                
-                # Skip identifier slots (already used as subject URI)
-                if not slot.identifier:
-                    # Create predicate URI from slot
-                    slot_uri = URIRef(schemaview.get_uri(slot, expand=True))
-                    
-                    # Recursively convert the value based on its expected type
-                    v_node = self.inject_triples(v, schemaview, graph, slot.range)
-                    
-                    # Add the triple: subject predicate object
-                    graph.add((subject_uri, slot_uri, v_node))
-                    
-                    # Check if this slot implies the type (e.g., rdf:type)
-                    if slot.designates_type:
-                        type_added = True
+            # Recursively convert the value based on its expected type
+            v_node = self.inject_triples(v, schemaview, graph, slot.range)
+            
+            # Add the triple: subject predicate object
+            graph.add((subject_uri, slot_uri, v_node))
+            
+            # Check if this slot implies the type (e.g., rdf:type)
+            if slot.designates_type:
+                type_added = True
         
         return type_added
 
