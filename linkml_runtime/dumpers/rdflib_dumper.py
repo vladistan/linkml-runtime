@@ -1,5 +1,6 @@
 import logging
 import urllib
+from dataclasses import dataclass
 from typing import Any, Optional, Union
 
 from curies import Converter
@@ -14,6 +15,25 @@ from linkml_runtime.utils.schemaview import SchemaView
 from linkml_runtime.utils.yamlutils import YAMLRoot
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class ConversionContext:
+    """Context object to reduce parameter passing and centralize conversion state"""
+    schemaview: SchemaView
+    graph: Graph
+    namespaces: Any
+    slot_name_map: dict
+    
+    @classmethod
+    def create(cls, schemaview: SchemaView, graph: Graph):
+        """Factory method to create context with derived data"""
+        return cls(
+            schemaview=schemaview,
+            graph=graph,
+            namespaces=schemaview.namespaces(),
+            slot_name_map=schemaview.slot_name_mappings()
+        )
 
 
 class RDFLibDumper(Dumper):
@@ -93,7 +113,7 @@ class RDFLibDumper(Dumper):
         self, element: Any, schemaview: SchemaView, graph: Graph, target_type: ElementName = None
     ) -> Node:
         """
-        Main dispatcher - delegates to specific type handlers
+        Main dispatcher - creates context and delegates to specific type handlers
         
         :param element: element to represent in RDF
         :param schemaview:
@@ -103,20 +123,23 @@ class RDFLibDumper(Dumper):
         """
         logger.debug(f"CONVERT: {element} // {type(element)} // {target_type}")
         
+        # Create context for this conversion
+        ctx = ConversionContext.create(schemaview, graph)
+        
         # Dispatch to appropriate handler based on target type
-        if target_type in schemaview.all_enums():
-            return self._handle_enum(element, schemaview, target_type)
-        elif target_type in schemaview.all_types():
-            return self._handle_type(element, schemaview, target_type)
+        if target_type in ctx.schemaview.all_enums():
+            return self._handle_enum(element, ctx, target_type)
+        elif target_type in ctx.schemaview.all_types():
+            return self._handle_type(element, ctx, target_type)
         else:
-            return self._handle_complex_object(element, schemaview, graph, target_type)
+            return self._handle_complex_object(element, ctx, target_type)
 
-    def _handle_enum(self, element: Any, schemaview: SchemaView, target_type: ElementName) -> Node:
-        """Handle enum conversion logic"""
+    def _handle_enum(self, element: Any, ctx: ConversionContext, target_type: ElementName) -> Node:
+        """Handle enum conversion logic with context"""
         # Handle different forms of enum values
         if isinstance(element, PermissibleValueText):
             # If it's just text, look up the full PermissibleValue object
-            e = schemaview.get_enum(target_type)
+            e = ctx.schemaview.get_enum(target_type)
             element = e.permissible_values[element]
         else:
             # Otherwise extract the code from the enum object
@@ -125,44 +148,43 @@ class RDFLibDumper(Dumper):
         
         # Convert to RDF: Use URI if enum has meaning (e.g., ontology term), otherwise plain literal
         if element.meaning is not None:
-            return URIRef(schemaview.expand_curie(element.meaning))
+            return URIRef(ctx.schemaview.expand_curie(element.meaning))
         else:
             return Literal(element.text)
 
-    def _handle_type(self, element: Any, schemaview: SchemaView, target_type: ElementName) -> Node:
-        """Handle primitive type conversion logic"""
-        namespaces = schemaview.namespaces()
-        t = schemaview.get_type(target_type)
+    def _handle_type(self, element: Any, ctx: ConversionContext, target_type: ElementName) -> Node:
+        """Handle primitive type conversion logic with context"""
+        t = ctx.schemaview.get_type(target_type)
         dt_uri = t.uri
         if dt_uri:
             # Special handling for specific types
             if dt_uri == "rdfs:Resource":
                 # Resources become URIs
-                return URIRef(schemaview.expand_curie(element))
+                return URIRef(ctx.schemaview.expand_curie(element))
             elif dt_uri == "xsd:string":
                 # Strings become plain literals
                 return Literal(element)
             else:
                 # Other types (integers, dates, etc.) become typed literals
-                if "xsd" not in namespaces:
-                    namespaces["xsd"] = XSD
-                return Literal(element, datatype=namespaces.uri_for(dt_uri))
+                if "xsd" not in ctx.namespaces:
+                    ctx.namespaces["xsd"] = XSD
+                return Literal(element, datatype=ctx.namespaces.uri_for(dt_uri))
         else:
             # Fallback for types without specified URIs
             logger.warning(f"No datatype specified for : {t.name}, using plain Literal")
             return Literal(element)
 
-    def _handle_complex_object(self, element: Any, schemaview: SchemaView, graph: Graph, target_type: ElementName = None) -> Node:
-        """Handle complex object conversion - now with better structure"""
+    def _handle_complex_object(self, element: Any, ctx: ConversionContext, target_type: ElementName = None) -> Node:
+        """Handle complex object conversion with context"""
         element_vars = self._extract_element_vars(element)
         if not element_vars:
-            return self._handle_simple_identifier(element, schemaview, target_type)
+            return self._handle_simple_identifier(element, ctx, target_type)
         
-        subject_uri = self._create_subject_uri(element, schemaview)
-        type_added = self._process_element_properties(element, element_vars, schemaview, graph, subject_uri)
+        subject_uri = self._create_subject_uri(element, ctx)
+        type_added = self._process_element_properties(element, element_vars, ctx, subject_uri)
         
         if not type_added:
-            self._add_type_triple(subject_uri, element, schemaview, graph)
+            self._add_type_triple(subject_uri, element, ctx)
         
         return subject_uri
 
@@ -170,56 +192,55 @@ class RDFLibDumper(Dumper):
         """Extract public attributes from element"""
         return {k: v for k, v in vars(element).items() if not k.startswith("_")}
 
-    def _handle_simple_identifier(self, element: Any, schemaview: SchemaView, target_type: ElementName) -> Node:
+    def _handle_simple_identifier(self, element: Any, ctx: ConversionContext, target_type: ElementName) -> Node:
         """Handle objects with no properties - treat as simple identifier"""
-        id_slot = schemaview.get_identifier_slot(target_type)
-        return self._as_uri(element, id_slot, schemaview)
+        id_slot = ctx.schemaview.get_identifier_slot(target_type)
+        return self._as_uri(element, id_slot, ctx.schemaview)
 
-    def _create_subject_uri(self, element: Any, schemaview: SchemaView) -> Node:
+    def _create_subject_uri(self, element: Any, ctx: ConversionContext) -> Node:
         """Create subject URI or blank node for the element"""
         element_type = type(element)
         cn = element_type.class_name
-        id_slot = schemaview.get_identifier_slot(cn)
+        id_slot = ctx.schemaview.get_identifier_slot(cn)
         
         # Create subject node: Use identifier if available, otherwise create blank node
         if id_slot is not None:
             element_id = getattr(element, id_slot.name)
-            return self._as_uri(element_id, id_slot, schemaview)
+            return self._as_uri(element_id, id_slot, ctx.schemaview)
         else:
             # No identifier slot - use anonymous blank node
             return BNode()
 
-    def _add_type_triple(self, subject_uri: Node, element: Any, schemaview: SchemaView, graph: Graph):
+    def _add_type_triple(self, subject_uri: Node, element: Any, ctx: ConversionContext):
         """Add rdf:type triple for the element"""
         cn = type(element).class_name
-        graph.add((subject_uri, RDF.type, URIRef(schemaview.get_uri(cn, expand=True))))
+        ctx.graph.add((subject_uri, RDF.type, URIRef(ctx.schemaview.get_uri(cn, expand=True))))
 
-    def _process_element_properties(self, element: Any, element_vars: dict, schemaview: SchemaView, graph: Graph, subject_uri: Node) -> bool:
+    def _process_element_properties(self, element: Any, element_vars: dict, ctx: ConversionContext, subject_uri: Node) -> bool:
         """Process all properties of an element, return whether type was added"""
         type_added = False
         cn = type(element).class_name
-        slot_name_map = schemaview.slot_name_mappings()
         
         for prop_name, prop_value in element_vars.items():
             type_added |= self._process_single_property(
-                prop_name, prop_value, cn, schemaview, graph, subject_uri, slot_name_map
+                prop_name, prop_value, cn, ctx, subject_uri
             )
         return type_added
 
-    def _process_single_property(self, prop_name: str, prop_value: Any, class_name: str, schemaview: SchemaView, graph: Graph, subject_uri: Node, slot_name_map: dict) -> bool:
+    def _process_single_property(self, prop_name: str, prop_value: Any, class_name: str, ctx: ConversionContext, subject_uri: Node) -> bool:
         """Process a single property, return whether it designated type"""
         values = self._normalize_property_values(prop_value)
         
         # Map Python attribute name to schema slot name if needed - preserving original behavior
         slot_name = prop_name
-        if prop_name in slot_name_map:
-            slot_name = slot_name_map[prop_name].name
+        if prop_name in ctx.slot_name_map:
+            slot_name = ctx.slot_name_map[prop_name].name
         else:
             logger.error(f"Slot {prop_name} not in name map")
         
         # Use try/catch to handle missing slots gracefully like the original
         try:
-            slot = schemaview.induced_slot(slot_name, class_name)
+            slot = ctx.schemaview.induced_slot(slot_name, class_name)
         except ValueError:
             # If slot not found, skip this property (matches original behavior when error occurs)
             return False
@@ -227,7 +248,7 @@ class RDFLibDumper(Dumper):
         if slot.identifier:
             return False  # Skip identifier slots
         
-        return self._add_property_triples(values, slot, schemaview, graph, subject_uri)
+        return self._add_property_triples(values, slot, ctx, subject_uri)
 
     def _normalize_property_values(self, prop_value: Any) -> list:
         """Normalize property values to a list for uniform processing"""
@@ -239,20 +260,20 @@ class RDFLibDumper(Dumper):
         else:
             return [prop_value]
 
-    def _add_property_triples(self, values: list, slot: Any, schemaview: SchemaView, graph: Graph, subject_uri: Node) -> bool:
+    def _add_property_triples(self, values: list, slot: Any, ctx: ConversionContext, subject_uri: Node) -> bool:
         """Add triples for all values of a property"""
         type_added = False
-        slot_uri = URIRef(schemaview.get_uri(slot, expand=True))
+        slot_uri = URIRef(ctx.schemaview.get_uri(slot, expand=True))
         
         for v in values:
             if v is None:
                 continue
             
             # Recursively convert the value based on its expected type
-            v_node = self.inject_triples(v, schemaview, graph, slot.range)
+            v_node = self.inject_triples(v, ctx.schemaview, ctx.graph, slot.range)
             
             # Add the triple: subject predicate object
-            graph.add((subject_uri, slot_uri, v_node))
+            ctx.graph.add((subject_uri, slot_uri, v_node))
             
             # Check if this slot implies the type (e.g., rdf:type)
             if slot.designates_type:
