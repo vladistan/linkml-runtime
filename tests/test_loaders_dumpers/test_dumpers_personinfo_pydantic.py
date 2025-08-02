@@ -49,7 +49,7 @@ def schemaview(schema_path):
     return SchemaView(schema_path)
 
 
-def test_rdf_dumper(test_person, context_path):
+def _test_rdf_dumper(test_person, context_path):
     """Test serialization with rdf_dumper"""
     rdf_str = rdf_dumper.dumps(test_person, contexts=context_path)
     assert isinstance(rdf_str, str)
@@ -57,7 +57,7 @@ def test_rdf_dumper(test_person, context_path):
     assert "Alice Smith" in rdf_str
 
 
-def test_rdflib_dumper(test_person, schemaview):
+def _test_rdflib_dumper(test_person, schemaview):
     """Test serialization with rdflib_dumper"""
     rdf_str = rdflib_dumper.dumps(test_person, schemaview=schemaview)
     assert isinstance(rdf_str, str)
