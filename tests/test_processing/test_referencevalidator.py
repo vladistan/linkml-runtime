@@ -121,7 +121,7 @@ def _errors(report: Report) -> str:
 def validation_doc():
     """
     Pytest fixture for auto-documenting validation suite.
-    
+
     This fixture sets up a document object that each test will contribute to.
     A side-effect of running this test is a markdown file
     that generates a report of all inputs and outputs;
@@ -130,7 +130,7 @@ def validation_doc():
     """
     print("Setting up validation documentation...")
     OUTPUT_DIRECTORY.mkdir(parents=True, exist_ok=True)
-    
+
     doc = MarkdownDocument()
     doc.h1("Validation Suite")
     doc.text("This document describes the validation suite for the LinkML model.")
@@ -143,9 +143,9 @@ def validation_doc():
     doc.li("Identified: has an `identifier` slot (*referenced* rather than inlined)")
     doc.li("NonIdentified: does not have an `identifier` slot (*necessarily* inlined)")
     doc.li("Simple: has a single non-identifier slot which is atomic (default *CompactDict* form)")
-    
+
     yield doc
-    
+
     # Write out the document object to a markdown file (equivalent to tearDownClass)
     doc.h2("Additional metadata")
     doc.li(f"Generated using {__file__} in the linkml-runtime repo.")
@@ -163,9 +163,7 @@ def _get_normalizer(sb: Optional[SchemaBuilder] = None) -> ReferenceValidator:
     return ReferenceValidator(sv)
 
 
-def _assert_unrepaired_types_the_same(
-    report: Report, expected_unrepaired, input_object: Any, output_object: Any
-):
+def _assert_unrepaired_types_the_same(report: Report, expected_unrepaired, input_object: Any, output_object: Any):
     """Assert unrepaired problem types match expected."""
     # TODO: simplify after https://github.com/linkml/linkml/issues/1203
     unrepaired_problem_types = report.unrepaired_problem_types()
@@ -177,75 +175,77 @@ def _assert_unrepaired_types_the_same(
 
     expected_unrepaired_vals = [_as_type(v) for v in expected_unrepaired]
     unrepaired_problem_types_vals = [_as_type(v) for v in unrepaired_problem_types]
-    assert sorted(expected_unrepaired_vals) == sorted(unrepaired_problem_types_vals), \
+    assert sorted(expected_unrepaired_vals) == sorted(unrepaired_problem_types_vals), (
         f"{input_object} -> {output_object}"
+    )
+
 
 def test_01_infer_collection_form(validation_doc):
     """Test that we can infer the collection form of a slot."""
     doc = validation_doc
     doc.h2(
-    "Collection Form Inference Tests",
-    "Tests that the correct CollectionForm is inferred based on slot properties.",
+        "Collection Form Inference Tests",
+        "Tests that the correct CollectionForm is inferred based on slot properties.",
     )
     cases = [
-    (SlotDefinition("s", multivalued=False), CollectionForm.NonCollection),
-    (
-        SlotDefinition("s", multivalued=False, range="string"),
-        CollectionForm.NonCollection,
-    ),
-    (
-        SlotDefinition("s", multivalued=False, range="Simple"),
-        CollectionForm.NonCollection,
-    ),
-    (
-        SlotDefinition("s", multivalued=False, range="Identified"),
-        CollectionForm.NonCollection,
-    ),
-    (
-        SlotDefinition("s", multivalued=False, range="NonIdentified"),
-        CollectionForm.NonCollection,
-    ),
-    (SlotDefinition("s", multivalued=True), CollectionForm.List),
-    (
-        SlotDefinition("s", multivalued=True, range="string"),
-        CollectionForm.List,
-    ),
-    (
-        SlotDefinition("s", multivalued=True, range="NonIdentified"),
-        CollectionForm.List,
-    ),
-    (
-        SlotDefinition("s", multivalued=True, range="Identified"),
-        CollectionForm.List,
-    ),
-    (
-        SlotDefinition("s", multivalued=True, range="Simple"),
-        CollectionForm.List,
-    ),
-    (
-        SlotDefinition("s", multivalued=True, inlined=True, range="Identified"),
-        CollectionForm.CompactDict,
-    ),
-    (
-        SlotDefinition("s", multivalued=True, inlined=True, range="NonIdentified"),
-        CollectionForm.CompactDict,
-    ),
-    (
-        SlotDefinition("s", multivalued=True, inlined=True, range="Simple"),
-        CollectionForm.SimpleDict,
-    ),
-    (
-        SlotDefinition("s", multivalued=True, inlined_as_list=True, range="Identified"),
-        CollectionForm.List,
-    ),
-    (
-        SlotDefinition("s", multivalued=True, inlined_as_list=True, range="NonIdentified"),
-        CollectionForm.List,
-    ),
-    (
-        SlotDefinition("s", multivalued=True, inlined_as_list=True, range="Simple"),
-        CollectionForm.List,
-    ),
+        (SlotDefinition("s", multivalued=False), CollectionForm.NonCollection),
+        (
+            SlotDefinition("s", multivalued=False, range="string"),
+            CollectionForm.NonCollection,
+        ),
+        (
+            SlotDefinition("s", multivalued=False, range="Simple"),
+            CollectionForm.NonCollection,
+        ),
+        (
+            SlotDefinition("s", multivalued=False, range="Identified"),
+            CollectionForm.NonCollection,
+        ),
+        (
+            SlotDefinition("s", multivalued=False, range="NonIdentified"),
+            CollectionForm.NonCollection,
+        ),
+        (SlotDefinition("s", multivalued=True), CollectionForm.List),
+        (
+            SlotDefinition("s", multivalued=True, range="string"),
+            CollectionForm.List,
+        ),
+        (
+            SlotDefinition("s", multivalued=True, range="NonIdentified"),
+            CollectionForm.List,
+        ),
+        (
+            SlotDefinition("s", multivalued=True, range="Identified"),
+            CollectionForm.List,
+        ),
+        (
+            SlotDefinition("s", multivalued=True, range="Simple"),
+            CollectionForm.List,
+        ),
+        (
+            SlotDefinition("s", multivalued=True, inlined=True, range="Identified"),
+            CollectionForm.CompactDict,
+        ),
+        (
+            SlotDefinition("s", multivalued=True, inlined=True, range="NonIdentified"),
+            CollectionForm.CompactDict,
+        ),
+        (
+            SlotDefinition("s", multivalued=True, inlined=True, range="Simple"),
+            CollectionForm.SimpleDict,
+        ),
+        (
+            SlotDefinition("s", multivalued=True, inlined_as_list=True, range="Identified"),
+            CollectionForm.List,
+        ),
+        (
+            SlotDefinition("s", multivalued=True, inlined_as_list=True, range="NonIdentified"),
+            CollectionForm.List,
+        ),
+        (
+            SlotDefinition("s", multivalued=True, inlined_as_list=True, range="Simple"),
+            CollectionForm.List,
+        ),
     ]
     doc.text("Expected collection form for different combinations of slot properties:")
     doc.th(METASLOTS + ["CollectionForm"])
@@ -260,12 +260,14 @@ def test_01_infer_collection_form(validation_doc):
         if expected in [CollectionForm.SimpleDict, CollectionForm.CompactDict]:
             expected = CollectionForm.ExpandedDict
         assert expected == inferred_form, f"expand_all={normalizer.expand_all}"
+
+
 def test_02_ensure_collection_forms(validation_doc):
     """Test normalization into a collection form."""
     doc = validation_doc
     doc.h2(
-    "Collection Form Coercion Tests",
-    "Test cases for coercing input objects to a specified collection form.",
+        "Collection Form Coercion Tests",
+        "Test cases for coercing input objects to a specified collection form.",
     )
     obj_identified_minimal = {"id": "id1"}
     obj_non_identified_minimal = {"name": "name1"}
@@ -520,10 +522,13 @@ def test_02_ensure_collection_forms(validation_doc):
                 ]
             )
             assert expected_output == output
-            assert len(expected_unrepaired) == len(report.results_excluding_normalized()), \
+            assert len(expected_unrepaired) == len(report.results_excluding_normalized()), (
                 f"case: {case} {report.results_excluding_normalized()}"
-            assert len(expected_repairs) == len(report.normalized_results()), \
+            )
+            assert len(expected_repairs) == len(report.normalized_results()), (
                 f"case: {case} {report.normalized_results()}"
+            )
+
 
 def test_03_slot_values(validation_doc):
     doc = validation_doc
@@ -806,12 +811,13 @@ def test_03_slot_values(validation_doc):
             inst_yaml = yaml_dumper.dumps(inst)
             report = Report()
             output_object = normalizer.normalize_object(inst, tc, report)
-            assert inst_yaml == yaml_dumper.dumps(inst), \
+            assert inst_yaml == yaml_dumper.dumps(inst), (
                 f"input should be immutable; {inst_yaml} changed to {yaml_dumper.dumps(inst)}"
-            assert expected_output == output_object, \
-                f"Mismatch for {slot.description} => {inst_description}"
-            assert len(expected_repairs) == len(report.normalized_results()), \
+            )
+            assert expected_output == output_object, f"Mismatch for {slot.description} => {inst_description}"
+            assert len(expected_repairs) == len(report.normalized_results()), (
                 f"Mismatch for {slot.description} =>  => {inst_description} . {report.normalized_results()}"
+            )
             _assert_unrepaired_types_the_same(report, expected_unrepaired, inst, output_object)
             # doc.h4("Example")
 
@@ -836,14 +842,15 @@ def test_03_slot_values(validation_doc):
                 ]
             )
 
+
 def test_05_type_ranges():
     """Test type range validation."""
     cases = [
-    ("maximum_value", "integer", 10, [5, 10], [11]),
-    ("minimum_value", "integer", 10, [11, 10], [5]),
-    ("pattern", "string", "^[a-z]+$", ["a", "abc"], ["", "a b", "A"]),
-    ("equals_string", "string", "abc", ["abc"], ["ab"]),
-    ("equals_expression", "integer", "5*5", [25], [24]),
+        ("maximum_value", "integer", 10, [5, 10], [11]),
+        ("minimum_value", "integer", 10, [11, 10], [5]),
+        ("pattern", "string", "^[a-z]+$", ["a", "abc"], ["", "a b", "A"]),
+        ("equals_string", "string", "abc", ["abc"], ["ab"]),
+        ("equals_expression", "integer", "5*5", [25], [24]),
     ]
     for metaslot, range, metaval, valid_examples, invalid_examples in cases:
         sb = SchemaBuilder()
@@ -861,23 +868,24 @@ def test_05_type_ranges():
             normalizer.normalize_object({"s": ex}, tc, report)
             assert report.results != [], f"{metaslot} = {ex}"
 
+
 def test_06_object_ranges():
     """Test object range validation."""
     cases = [
-    ("TestClass", {"aref_A": {"id": "a", "name": "n", "ms": "v"}}, []),
-    (
-        "TestClass",
-        {"aref_A": {"id": "a", "name": "n", "m1s": "v"}},
-        [ConstraintType.ClosedClassConstraint],
-    ),
-    ("TestClass", {"aref_A1": {"id": "a", "a1s": "v", "m1s": "v"}}, []),
-    ("TestClass", {"aref_A": {"id": "a", "type": "A"}}, []),
-    ("TestClass", {"aref_A": {"id": "a", "type": "A1"}}, []),
-    (
-        "TestClass",
-        {"aref_A11": {"id": "a", "type": "A12"}},
-        [ConstraintType.DesignatesTypeConstraint],
-    ),
+        ("TestClass", {"aref_A": {"id": "a", "name": "n", "ms": "v"}}, []),
+        (
+            "TestClass",
+            {"aref_A": {"id": "a", "name": "n", "m1s": "v"}},
+            [ConstraintType.ClosedClassConstraint],
+        ),
+        ("TestClass", {"aref_A1": {"id": "a", "a1s": "v", "m1s": "v"}}, []),
+        ("TestClass", {"aref_A": {"id": "a", "type": "A"}}, []),
+        ("TestClass", {"aref_A": {"id": "a", "type": "A1"}}, []),
+        (
+            "TestClass",
+            {"aref_A11": {"id": "a", "type": "A12"}},
+            [ConstraintType.DesignatesTypeConstraint],
+        ),
     ]
     sb = SchemaBuilder()
     sb.add_slot("id", identifier=True)
@@ -903,6 +911,7 @@ def test_06_object_ranges():
         normalizer.normalize_object(inst, derived_schema.classes[cn], report)
         _assert_unrepaired_types_the_same(report, expected_problems, inst, inst)
 
+
 def test_07_normalize_enums(validation_doc):
     """Test enum normalization."""
     sb = SchemaBuilder()
@@ -911,8 +920,8 @@ def test_07_normalize_enums(validation_doc):
     normalizer = _get_normalizer(sb)
     derived_schema = normalizer.derived_schema
     cases = [
-    ("A", [], [], "A"),
-    ("D", [], [ConstraintType.PermissibleValueConstraint], "D"),
+        ("A", [], [], "A"),
+        ("D", [], [ConstraintType.PermissibleValueConstraint], "D"),
     ]
     for (
         input_object,
@@ -925,6 +934,7 @@ def test_07_normalize_enums(validation_doc):
         assert expected_output == output
         assert sorted(expected_repairs) == sorted(report.normalized_results())
         _assert_unrepaired_types_the_same(report, expected_unrepaired, input_object, output)
+
 
 def test_08_normalize_types(validation_doc):
     doc = validation_doc
@@ -1035,8 +1045,9 @@ def test_08_normalize_types(validation_doc):
             report = Report()
             normalized_value = normalizer.normalize_type(v, derived_schema.types[f"my_{t}"], report)
             assert expected_value == normalized_value, f"Failed to normalize {v} to {t}"
-            assert len(report.normalized_results()) == len(expected_repairs), \
+            assert len(report.normalized_results()) == len(expected_repairs), (
                 f"{v} -> {expected_value} type {t}: Expected {expected_repairs} repairs, got {report.normalized_results()}"
+            )
             _assert_unrepaired_types_the_same(report, expected_unrepaired, v, expected_value)
             # test with built-in type
             report = Report()
@@ -1044,6 +1055,7 @@ def test_08_normalize_types(validation_doc):
             assert expected_value == normalized_value
             assert len(report.normalized_results()) == len(expected_repairs)
             _assert_unrepaired_types_the_same(report, expected_unrepaired, v, expected_value)
+
 
 def test_derived_schema_for_metadata():
     view = package_schemaview("linkml_runtime.linkml_model.meta")
@@ -1053,6 +1065,7 @@ def test_derived_schema_for_metadata():
     sdc = derived_schema.classes["schema_definition"]
     prefix_slot = sdc.attributes["prefixes"]
     assert prefix_slot.range == "prefix"
+
 
 def test_line_number():
     view = package_schemaview("linkml_runtime.linkml_model.meta")
@@ -1071,6 +1084,7 @@ def test_line_number():
     r = report.results_excluding_normalized()[0]
     assert 3 == r.source_line_number
     assert 8 == r.source_column_number
+
 
 def test_examples_against_metamodel():
     view = package_schemaview("linkml_runtime.linkml_model.meta")
@@ -1106,6 +1120,7 @@ def test_examples_against_metamodel():
     report = validator.validate(schema_norm, target=sdc.name)
     assert 0 == len(report.errors())
     assert 0 == len(report.normalized_results())
+
 
 def test_metamodel():
     view = package_schemaview("linkml_runtime.linkml_model.meta")

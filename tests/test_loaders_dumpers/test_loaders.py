@@ -18,6 +18,7 @@ def context_server():
     """Set up context server for testing."""
     # Check context servers - this mimics the original setUpClass logic
     from tests.test_loaders_dumpers.loaderdumpertestcase import LoaderDumperTestCase
+
     context_server = LoaderDumperTestCase.check_context_servers([LD_11_SVR, LD_11_SSL_SVR])
     if not context_server:
         context_server = LD_11_DIR

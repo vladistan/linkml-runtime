@@ -281,26 +281,27 @@ def make_env_fixture(file_path: str):
 def create_test_environment_fixture(env_instance: TestEnvironment):
     """
     Create a pytest fixture for TestEnvironment instances.
-    
+
     Usage in test files:
         env = TestEnvironment(__file__)
         test_env = create_test_environment_fixture(env)
     """
+
     @pytest.fixture(scope="class")
     def test_environment_fixture():
         """Initialize and cleanup test environment."""
         if env_instance:
             env_instance.make_testing_directory(env_instance.tempdir, clear=True)
-        
+
         yield env_instance
-        
+
         # Cleanup - equivalent to tearDownClass
         if env_instance:
             msg = str(env_instance)
             env_instance.clear_log()
             if msg and env_instance.report_errors:
                 print(msg, file=sys.stderr)
-    
+
     return test_environment_fixture
 
 
@@ -311,13 +312,13 @@ def test_environment_check():
     Use with autouse=True in test classes that need environment error checking.
     """
     env_instance = None
-    
+
     def set_env(env):
         nonlocal env_instance
         env_instance = env
-    
+
     yield set_env
-    
+
     # Check for errors after each test
     if env_instance and env_instance.fail_on_error:
         msg = str(env_instance)
@@ -330,7 +331,7 @@ def test_environment_check():
 def redirect_logstream(test_class_name: str):
     """
     Context manager for redirecting log streams (formerly instance method).
-    
+
     :param test_class_name: Name of the test class for logger naming
     """
     logstream = StringIO()
@@ -350,32 +351,33 @@ def redirect_logstream(test_class_name: str):
 class TestEnvironmentTestCase:
     """
     DEPRECATED: Use pytest fixtures instead.
-    
+
     Legacy compatibility for TestEnvironmentTestCase. This is kept for backward compatibility
     but new tests should use the create_test_environment_fixture() function instead.
-    
+
     Migration guide:
-    
+
     Old unittest style:
         class MyTest(TestEnvironmentTestCase):
             env = TestEnvironment(__file__)
-            
+
             def test_something(self):
                 # test code
-    
+
     New pytest style:
         env = TestEnvironment(__file__)
         test_env = create_test_environment_fixture(env)
-        
+
         class TestMy:
             def test_something(self, test_env):
                 # test code using test_env instead of self.env
     """
-    
+
     def __init__(self):
         import warnings
+
         warnings.warn(
             "TestEnvironmentTestCase is deprecated. Use create_test_environment_fixture() instead.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )

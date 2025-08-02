@@ -1,9 +1,11 @@
 import os
-import pytest
 from datetime import date
+
+import pytest
+
 from linkml_runtime.dumpers import rdf_dumper, rdflib_dumper
 from linkml_runtime.utils.schemaview import SchemaView
-from tests.test_loaders_dumpers.models.personinfo_pydantic import EmploymentEvent, Person, Organization
+from tests.test_loaders_dumpers.models.personinfo_pydantic import EmploymentEvent, Organization, Person
 
 
 @pytest.fixture(scope="module")
