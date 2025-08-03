@@ -332,10 +332,44 @@ class PydanticRDFLoader(Loader):
         global_meta: Dict[str, Any]
     ) -> Optional[Type[BaseModel]]:
         """Get the target class for a field if it's a complex object"""
+        import typing
+        
         field_info = model_class.model_fields.get(field_name)
         if not field_info:
             return None
         
+        # First try to get the class from type annotation
+        field_type = field_info.annotation
+        
+        # Handle Optional and List types
+        if hasattr(typing, 'get_origin') and hasattr(typing, 'get_args'):
+            origin = typing.get_origin(field_type)
+            args = typing.get_args(field_type)
+            
+            # Handle Union types (like Optional[Type])
+            if origin is typing.Union:
+                for arg in args:
+                    # Skip None type
+                    if arg is type(None):
+                        continue
+                    # Check if it's a list
+                    if typing.get_origin(arg) is list:
+                        inner_args = typing.get_args(arg)
+                        if inner_args and isinstance(inner_args[0], type) and issubclass(inner_args[0], BaseModel):
+                            return inner_args[0]
+                    # Check if it's a direct BaseModel subclass
+                    elif isinstance(arg, type) and issubclass(arg, BaseModel):
+                        return arg
+            # Handle direct list types
+            elif origin is list:
+                if args and isinstance(args[0], type) and issubclass(args[0], BaseModel):
+                    return args[0]
+        
+        # Check if it's a direct BaseModel subclass (no Optional/List wrapper)
+        if isinstance(field_type, type) and issubclass(field_type, BaseModel):
+            return field_type
+        
+        # Fallback to metadata approach
         field_meta = self._get_field_metadata(field_info)
         range_name = field_meta.get("range")
         
