@@ -13,3 +13,13 @@ rdflib_loader = RDFLibLoader()
 yaml_loader = YAMLLoader()
 csv_loader = CSVLoader()
 tsv_loader = TSVLoader()
+
+importlib_loaders = [
+    json_loader,
+    pydantic_rdf_loader,
+    rdf_loader,
+    rdflib_loader,
+    yaml_loader,
+    csv_loader,
+    tsv_loader
+]
