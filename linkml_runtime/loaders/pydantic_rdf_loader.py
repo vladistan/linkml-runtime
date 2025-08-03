@@ -183,9 +183,43 @@ class PydanticRDFLoader(Loader):
             else:
                 model_data[field_name] = field_value
         
+        # Before creating model instance, check if single values need to be wrapped in lists
+        self._wrap_list_fields(model_data, target_class)
+        
         # Create model instance
         return target_class(**model_data)
     
+    def _wrap_list_fields(self, model_data: Dict[str, Any], target_class: Type[BaseModel]) -> None:
+        """Wrap single values in lists for fields that expect lists"""
+        import typing
+        
+        for field_name, field_info in target_class.model_fields.items():
+            if field_name not in model_data:
+                continue
+                
+            # Check if field is already a list
+            if isinstance(model_data[field_name], list):
+                continue
+                
+            # Check if the field type is a list type
+            field_type = field_info.annotation
+            
+            # Handle Optional[list[...]] and similar Union types
+            if hasattr(typing, 'get_origin') and hasattr(typing, 'get_args'):
+                origin = typing.get_origin(field_type)
+                args = typing.get_args(field_type)
+                
+                # Handle Union types (like Optional[list[str]])
+                if origin is typing.Union:
+                    for arg in args:
+                        if typing.get_origin(arg) is list:
+                            # This field should be a list, wrap the single value
+                            model_data[field_name] = [model_data[field_name]]
+                            break
+                # Handle direct list types
+                elif origin is list:
+                    model_data[field_name] = [model_data[field_name]]
+
     def _uri_to_curie(self, uri: str, prefixes: Dict[str, str]) -> str:
         """Convert URI back to CURIE if possible"""
         for prefix, base_uri in prefixes.items():
