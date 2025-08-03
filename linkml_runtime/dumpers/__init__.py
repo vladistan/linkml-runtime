@@ -13,3 +13,20 @@ rdflib_dumper = RDFLibDumper()
 yaml_dumper = YAMLDumper()
 csv_dumper = CSVDumper()
 tsv_dumper = TSVDumper()
+
+__all__ = [
+    "CSVDumper",
+    "JSONDumper",
+    "PydanticRDFDumper",
+    "RDFDumper",
+    "RDFLibDumper",
+    "TSVDumper",
+    "YAMLDumper",
+    "json_dumper",
+    "pydantic_rdf_dumper",
+    "rdf_dumper",
+    "rdflib_dumper",
+    "yaml_dumper",
+    "csv_dumper",
+    "tsv_dumper",
+]
