@@ -121,7 +121,4 @@ def test_pydantic_rdf_dumper_loader(test_person, pydantic_rdf_dumper, pydantic_r
     original_start_dates = {emp.started_at_time for emp in test_person.has_employment_history}
     loaded_start_dates = {emp.started_at_time for emp in loaded_person.has_employment_history}
     assert original_start_dates == loaded_start_dates
-    
-    print(f"✅ Round-trip successful: {test_person.name} -> RDF -> {loaded_person.name}")
-    print(f"   Employment history: {len(test_person.has_employment_history)} -> {len(loaded_person.has_employment_history)} jobs")
 
