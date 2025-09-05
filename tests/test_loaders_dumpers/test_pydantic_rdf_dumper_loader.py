@@ -3,6 +3,8 @@ from datetime import date
 from pathlib import Path
 
 import pytest
+from rdflib import URIRef
+from rdflib.namespace import RDF
 
 from linkml_runtime.dumpers.pydantic_rdf_dumper import PydanticRDFDumper
 from linkml_runtime.loaders.pydantic_rdf_loader import PydanticRDFLoader
@@ -78,9 +80,6 @@ def test_pydantic_rdf_dumper_graph(test_person, pydantic_dumper):
     assert len(graph) > 0  # Should have triples
     
     # Check for expected triples
-    from rdflib import URIRef
-    from rdflib.namespace import RDF
-    
     # Should have at least one rdf:type triple
     type_triples = list(graph.triples((None, RDF.type, None)))
     assert len(type_triples) > 0
