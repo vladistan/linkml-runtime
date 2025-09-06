@@ -183,7 +183,10 @@ class PydanticRDFLoader(Loader):
             # Find corresponding field in model
             field_name = self._find_field_for_predicate(target_class, predicate, prefixes)
             if not field_name:
+                logger.debug(f"No field mapping found for predicate {predicate} in {target_class.__name__}")
                 continue
+            
+            logger.debug(f"Mapped {predicate} -> {field_name} in {target_class.__name__}")
             
             # Convert object value
             field_value = self._convert_object_value(graph, obj, target_class, field_name, global_meta, prefixes)
@@ -215,6 +218,7 @@ class PydanticRDFLoader(Loader):
                 
             # Check if field is already a list
             if isinstance(model_data[field_name], list):
+                logger.debug(f"_wrap_list_fields: {field_name} already a list with {len(model_data[field_name])} items")
                 continue
                 
             # Check if the field type is a list type

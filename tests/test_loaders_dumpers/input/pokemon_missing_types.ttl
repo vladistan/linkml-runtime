@@ -1,0 +1,13 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix pokemon: <https://pokemonkg.org/ontology#> .
+@prefix xs: <http://www.w3.org/2001/XMLSchema#> .
+
+<https://pokemonkg.org/instance/pokemon/test> a pokemon:Species ;
+    rdfs:label "Test Pokemon"@en ;
+    pokemon:hasGenus "Test Pokemon" ;
+    pokemon:hasCatchRate "50"^^xs:integer ;
+    pokemon:hasType pokemon:PokéType:NonExistent ;
+    pokemon:hasType pokemon:PokéType:AlsoMissing .
+
+# NOTE: The referenced types are NOT defined in this document
+# This should cause the loader to throw an exception
