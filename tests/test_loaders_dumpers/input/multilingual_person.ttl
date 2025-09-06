@@ -1,0 +1,52 @@
+@prefix schema: <http://schema.org/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<http://example.org/person/multilingual-john> a schema:Person ;
+    schema:identifier "person-001" ;
+    
+    schema:name "جون سميث"@ar ;
+    schema:name "John Smith"@en ;
+    schema:name "Джон Сміт"@uk ;
+    schema:name "约翰·史密斯"@zh ;
+    
+    # English variations and nicknames
+    schema:alternateName "Johnny" ;
+    schema:alternateName "Johnnie" ;
+    schema:alternateName "JJ" ;
+    
+    # Spanish official and common nicknames
+    schema:alternateName "Juan" ;
+    schema:alternateName "Juanito" ;
+    schema:alternateName "Nito" ;
+    
+    # Greek name
+    schema:alternateName "Ιωάννης" ;
+    
+    # Hebrew name
+    schema:alternateName "יונתן" ;
+    
+    # Chinese names
+    schema:alternateName "约翰" ;
+    schema:alternateName "強尼" ;
+    
+    # Ukrainian names - Latin alphabet
+    schema:alternateName "Ivan" ;
+    schema:alternateName "Vanya" ;
+    
+    # Ukrainian names - Cyrillic alphabet  
+    schema:alternateName "Іван" ;
+    schema:alternateName "Ваня" ;
+    
+    # Japanese names - different scripts
+    schema:alternateName "ジョン" ;      # Katakana
+    schema:alternateName "じょん" ;      # Hiragana  
+    schema:alternateName "譲" ;         # Kanji
+    
+    schema:description "Una persona para probar la funcionalidad multiidioma"@es ;
+    schema:description "Une personne pour tester la fonctionnalité multilingue"@fr ;
+    schema:description "बहुभाषी कार्यक्षमता का परीक्षण करने के लिए एक व्यक्ति"@hi ;
+    schema:description "Una persona per testare la funzionalità multilingue"@it ;
+    schema:description "బహుభాషా కార్యాచరణను పరీక్షించడానికి ఒక వ్యక్తి"@te ;
+    schema:description "Çok dilli işlevselliği test etmek için bir kişi"@tr ;
+    schema:description "Людина для тестування багатомовної функціональності"@uk ;
+    schema:description "用于测试多语言功能的人"@zh .

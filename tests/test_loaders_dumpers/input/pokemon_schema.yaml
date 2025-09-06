@@ -1,0 +1,102 @@
+id: https://pokemonkg.org/ontology
+name: pokemon-multilingual-test
+description: Minimal Pokemon schema for testing multilingual RDF support
+license: CC0
+
+prefixes:
+  pokemon: https://pokemonkg.org/ontology#
+  instance: https://pokemonkg.org/instance/
+  rdfs: http://www.w3.org/2000/01/rdf-schema#
+  foaf: http://xmlns.com/foaf/0.1/
+  schema: http://schema.org/
+  linkml: https://w3id.org/linkml/
+
+default_prefix: pokemon
+default_range: string
+
+imports:
+  - linkml:types
+
+classes:
+  Species:
+    class_uri: pokemon:Species
+    description: A Pokemon species
+    slots:
+      - id
+      - name
+      - genus
+      - description
+      - catch_rate
+      - types
+      - moves
+      - depictions
+
+  PokemonType:
+    class_uri: pokemon:PokeType
+    description: A Pokemon type (e.g., Grass, Ice)
+    slots:
+      - id
+      - name
+      - description
+
+  Ability:
+    class_uri: pokemon:Ability
+    description: A Pokemon ability
+    slots:
+      - id
+      - name
+      - description
+
+  Move:
+    class_uri: pokemon:Move
+    description: A Pokemon move
+    slots:
+      - id
+      - name
+      - description
+
+slots:
+  id:
+    identifier: true
+    slot_uri: "@id"
+    range: string
+    required: true
+
+  name:
+    slot_uri: rdfs:label
+    range: string
+    description: Name (supports multilingual)
+
+  genus:
+    slot_uri: pokemon:hasGenus
+    range: string
+    description: Pokemon genus/category (supports multilingual)
+
+  description:
+    slot_uri: rdfs:comment
+    range: string
+    description: Description (supports multilingual)
+
+  catch_rate:
+    slot_uri: pokemon:hasCatchRate
+    range: integer
+    description: Base catch rate
+
+  types:
+    slot_uri: pokemon:hasType
+    range: PokemonType
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+
+  moves:
+    slot_uri: pokemon:isAbleToApply
+    range: Move
+    multivalued: true
+    inlined: true
+    inlined_as_list: true
+
+  depictions:
+    slot_uri: foaf:depiction
+    range: string
+    multivalued: true

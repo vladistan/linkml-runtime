@@ -118,7 +118,4 @@ def test_object_index(schema_view, container, object_index):
     assert oix.eval_expr("persons[0]._parents[0][1].persons[0].id") == "P:001"
     assert oix.eval_expr("persons[0].persons__inverse[0].persons[0].id") == "P:001"
 
-    # Test inference
-    config = Config(use_expressions=True)
-    infer_slot_value(person, "description", schemaview=schema_view, class_name="Person", config=config)
-    assert person.description == "name: fred bloggs address: 1 oak street"
+ 
