@@ -462,8 +462,11 @@ class PydanticRDFLoader(Loader):
         
         For fields that have multiple values in different languages, select the value
         in the most preferred language based on language preferences.
+        
+        Raises ValidationError if single-valued fields have multiple values without language tags.
         """
         import typing
+        from pydantic_core import ValidationError
         
         for field_name, field_info in target_class.model_fields.items():
             if field_name not in model_data:
@@ -488,10 +491,44 @@ class PydanticRDFLoader(Loader):
                 if len(non_none_args) == 1 and non_none_args[0] == str:
                     is_single_string_field = True
             
-            # If it's a single string field with list of values, apply language preference
-            if is_single_string_field and isinstance(value, list) and len(value) > 1:
-                selected_value = self._select_preferred_language_from_tagged_literals(value)
-                model_data[field_name] = selected_value
+            # If it's a single string field with list of values, or single tuple value
+            if is_single_string_field and (isinstance(value, list) or isinstance(value, tuple)):
+                # Handle single tuple (language-tagged literal)
+                if isinstance(value, tuple) and len(value) == 2:
+                    # Single language-tagged value, extract the string
+                    model_data[field_name] = value[0]
+                    continue
+                
+                # Handle list of values
+                if isinstance(value, list):
+                    # Skip validation for 'id' field (can have subject URI + schema:identifier)
+                    if field_name == 'id':
+                        # For id field, just take the first value (usually subject URI)
+                        model_data[field_name] = value[0] if isinstance(value[0], str) else value[0][0] if isinstance(value[0], tuple) else str(value[0])
+                        continue
+                    
+                    # Single value in list, extract it
+                    if len(value) == 1:
+                        single_val = value[0]
+                        if isinstance(single_val, tuple) and len(single_val) == 2:
+                            model_data[field_name] = single_val[0]  # Extract string from language-tagged tuple
+                        else:
+                            model_data[field_name] = single_val
+                        continue
+                    
+                    # Multiple values - check if they're language-tagged
+                    has_any_language_tags = any(
+                        isinstance(v, tuple) and len(v) == 2 for v in value
+                    )
+                    
+                    if not has_any_language_tags:
+                        # Multiple plain strings for single-valued field - this is invalid
+                        error_msg = f"Single-valued field '{field_name}' cannot have multiple values without language tags. Found {len(value)} values: {[str(v) for v in value]}"
+                        raise ValueError(error_msg)
+                    
+                    # Has language tags - proceed with multilingual selection
+                    selected_value = self._select_preferred_language_from_tagged_literals(value)
+                    model_data[field_name] = selected_value
                 logger.debug(f"Selected '{selected_value}' from {len(value)} multilingual values for {field_name}")
     
     def _select_preferred_language_from_tagged_literals(self, values: List[Any]) -> str:
