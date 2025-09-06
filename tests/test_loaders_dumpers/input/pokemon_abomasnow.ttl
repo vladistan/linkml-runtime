@@ -1,0 +1,26 @@
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix pokemon: <https://pokemonkg.org/ontology#> .
+@prefix xs: <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+
+<https://pokemonkg.org/instance/pokemon/abomasnow> a pokemon:Species ;
+    rdfs:label "Abomasnow"@en ;
+    rdfs:label "Rexblisar"@de ;
+    rdfs:label "ユキノオー"@ja ;
+    pokemon:hasGenus "Frost Tree Pokémon" ;
+    rdfs:comment "Abomasnow is a dual-type Grass/Ice Pokémon."@en ;
+    pokemon:hasCatchRate "60"^^xs:integer ;
+    pokemon:hasType pokemon:PokéType_Grass ;
+    pokemon:hasType pokemon:PokéType_Ice .
+
+<https://pokemonkg.org/ontology#PokéType_Grass> a owl:NamedIndividual ;
+    a pokemon:Type ;
+    rdfs:label "Grass"@en ;
+    rdfs:label "Pflanze"@de ;
+    rdfs:comment "Grass is one of the three basic elemental types along with Fire and Water, which constitute the three starter Pokémon. This creates a simple triangle to explain the type concept easily to new players."@en ;
+    rdfs:comment "Gras ist einer der drei elementaren Grundtypen zusammen mit Feuer und Wasser, die die drei Starter-Pokémon bilden. Dadurch entsteht ein einfaches Dreieck, um neuen Spielern das Typkonzept leicht zu erklären."@de .
+
+<https://pokemonkg.org/ontology#PokéType_Ice> a owl:NamedIndividual ;
+    a pokemon:Type ;
+    rdfs:label "Ice"@en ;
+    rdfs:label "Eis"@de .
