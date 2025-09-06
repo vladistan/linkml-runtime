@@ -26,7 +26,21 @@ class PydanticRDFLoader(Loader):
     
     This loader uses the linkml_meta attributes embedded in Pydantic models
     to understand the RDF structure without requiring a separate SchemaView.
+    
+    Enhanced with generic capabilities for real-world RDF data:
+    - Multilingual string handling with language preferences
+    - Smart cardinality handling for external ontology mismatches
+    - Complex object instantiation from URI references
     """
+    
+    def __init__(self, preferred_languages: Optional[List[str]] = None):
+        """
+        Initialize PydanticRDFLoader with enhanced capabilities.
+        
+        Args:
+            preferred_languages: Language preference order (e.g., ['en', 'ja', 'de'])
+        """
+        self.preferred_languages = preferred_languages or ['en']
     
     def load(
         self,
@@ -183,7 +197,9 @@ class PydanticRDFLoader(Loader):
             else:
                 model_data[field_name] = field_value
         
-        # Before creating model instance, check if single values need to be wrapped in lists
+        # Before creating model instance, apply enhancements
+        # Order matters: multilingual processing first, then list wrapping
+        self._handle_multilingual_strings(model_data, target_class)
         self._wrap_list_fields(model_data, target_class)
         
         # Create model instance
@@ -296,8 +312,12 @@ class PydanticRDFLoader(Loader):
                     from datetime import date
                     return date.fromisoformat(str(obj))
             
-            # Return string representation
-            return str(obj)
+            # Return string representation, preserving language tag info if present
+            if obj.language:
+                # Store language-tagged literal as tuple for later processing
+                return (str(obj), obj.language)
+            else:
+                return str(obj)
         
         elif isinstance(obj, URIRef):
             # Could be a reference to another object or just a URI value
@@ -435,3 +455,110 @@ class PydanticRDFLoader(Loader):
             raise ValueError("PydanticRDFLoader only supports Pydantic BaseModel classes")
         
         return self.load(source, target_class, fmt=fmt, prefix_map=prefix_map)
+    
+    def _handle_multilingual_strings(self, model_data: Dict[str, Any], target_class: Type[BaseModel]) -> None:
+        """
+        Handle multilingual string fields by selecting preferred language.
+        
+        For fields that have multiple values in different languages, select the value
+        in the most preferred language based on language preferences.
+        """
+        import typing
+        
+        for field_name, field_info in target_class.model_fields.items():
+            if field_name not in model_data:
+                continue
+                
+            value = model_data[field_name]
+            
+            # Check if this is a string field that got multiple values (multilingual)
+            field_type = field_info.annotation
+            import typing
+            
+            # Only process single-value string fields, not list fields
+            origin = typing.get_origin(field_type)
+            args = typing.get_args(field_type)
+            
+            is_single_string_field = False
+            if field_type == str:
+                is_single_string_field = True
+            elif origin is typing.Union and args:
+                # Handle Optional[str] case
+                non_none_args = [arg for arg in args if arg is not type(None)]
+                if len(non_none_args) == 1 and non_none_args[0] == str:
+                    is_single_string_field = True
+            
+            # If it's a single string field with list of values, apply language preference
+            if is_single_string_field and isinstance(value, list) and len(value) > 1:
+                selected_value = self._select_preferred_language_from_tagged_literals(value)
+                model_data[field_name] = selected_value
+                logger.debug(f"Selected '{selected_value}' from {len(value)} multilingual values for {field_name}")
+    
+    def _select_preferred_language_from_tagged_literals(self, values: List[Any]) -> str:
+        """
+        Select preferred language from a list that may contain language-tagged literals.
+        
+        Args:
+            values: List that may contain strings or (string, language) tuples
+            
+        Returns:
+            Selected string value based on language preference
+        """
+        # Separate language-tagged and non-tagged values
+        tagged_values = []
+        non_tagged_values = []
+        
+        for value in values:
+            if isinstance(value, tuple) and len(value) == 2:
+                # Language-tagged literal: (text, language_code)
+                text, lang_code = value
+                tagged_values.append((text, lang_code))
+            else:
+                # Regular string without language tag
+                non_tagged_values.append(value)
+        
+        # If we have language-tagged values, use language preference
+        if tagged_values:
+            # Try each preferred language in order
+            for preferred_lang in self.preferred_languages:
+                for text, lang_code in tagged_values:
+                    if lang_code == preferred_lang:
+                        return text
+            
+            # If no preferred language found, fall back to English if available
+            for text, lang_code in tagged_values:
+                if lang_code == 'en':
+                    return text
+            
+            # If no English, use first language alphabetically
+            tagged_values.sort(key=lambda x: x[1])  # Sort by language code
+            return tagged_values[0][0]
+        
+        # If no language-tagged values, fall back to original logic
+        if non_tagged_values:
+            return self._select_preferred_language(non_tagged_values)
+        
+        # Fallback
+        return str(values[0]) if values else ""
+    
+    def _select_preferred_language(self, values: List[str]) -> str:
+        """
+        Select preferred language from a list of multilingual strings.
+        
+        Uses simple heuristics to identify English vs. other languages.
+        Future enhancement: proper language detection based on RDF language tags.
+        """
+        if not values:
+            return ""
+            
+        if len(values) == 1:
+            return values[0]
+        
+        # Simple heuristic: prefer ASCII strings (likely English)
+        for value in values:
+            if all(ord(char) < 128 for char in value):
+                return value
+                
+        # Fallback to first value
+        return values[0]
+    
