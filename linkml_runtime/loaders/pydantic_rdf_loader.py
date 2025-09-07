@@ -229,8 +229,8 @@ class PydanticRDFLoader(Loader):
                 origin = typing.get_origin(field_type)
                 args = typing.get_args(field_type)
                 
-                # Handle Union types (like Optional[list[str]])
-                if origin is typing.Union:
+                # Handle Union types (both typing.Union and types.UnionType for Python 3.10+)
+                if origin is typing.Union or str(origin) == "<class 'types.UnionType'>":
                     for arg in args:
                         if typing.get_origin(arg) is list:
                             # This field should be a list, wrap the single value
