@@ -489,8 +489,8 @@ class PydanticRDFLoader(Loader):
             is_single_string_field = False
             if field_type == str:
                 is_single_string_field = True
-            elif origin is typing.Union and args:
-                # Handle Optional[str] case
+            elif (origin is typing.Union or str(origin) == "<class 'types.UnionType'>") and args:
+                # Handle Optional[str] case (both old typing.Union and new types.UnionType)
                 non_none_args = [arg for arg in args if arg is not type(None)]
                 if len(non_none_args) == 1 and non_none_args[0] == str:
                     is_single_string_field = True
@@ -526,14 +526,24 @@ class PydanticRDFLoader(Loader):
                     )
                     
                     if not has_any_language_tags:
-                        # Multiple plain strings for single-valued field - this is invalid
-                        error_msg = f"Single-valued field '{field_name}' cannot have multiple values without language tags. Found {len(value)} values: {[str(v) for v in value]}"
-                        raise ValueError(error_msg)
+                        # Multiple plain strings for single-valued field
+                        # Check if they're all URIs (like multiple depiction images)
+                        all_uris = all(isinstance(v, str) and (v.startswith('http') or ':' in v) for v in value)
+                        
+                        if all_uris:
+                            # Multiple URIs for single-valued field - take first (common for images, etc.)
+                            model_data[field_name] = value[0]
+                            logger.debug(f"Multiple URIs for single field {field_name}, using first: {value[0]}")
+                            continue
+                        else:
+                            # Multiple plain strings for single-valued field - this is invalid
+                            error_msg = f"Single-valued field '{field_name}' cannot have multiple values without language tags. Found {len(value)} values: {[str(v) for v in value]}"
+                            raise ValueError(error_msg)
                     
                     # Has language tags - proceed with multilingual selection
                     selected_value = self._select_preferred_language_from_tagged_literals(value)
                     model_data[field_name] = selected_value
-                logger.debug(f"Selected '{selected_value}' from {len(value)} multilingual values for {field_name}")
+                    logger.debug(f"Selected '{selected_value}' from {len(value)} multilingual values for {field_name}")
     
     def _select_preferred_language_from_tagged_literals(self, values: List[Any]) -> str:
         """
