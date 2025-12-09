@@ -1,13 +1,32 @@
 from linkml_runtime.dumpers.csv_dumper import CSVDumper
 from linkml_runtime.dumpers.json_dumper import JSONDumper
+from linkml_runtime.dumpers.pydantic_rdf_dumper import PydanticRDFDumper
 from linkml_runtime.dumpers.rdf_dumper import RDFDumper
 from linkml_runtime.dumpers.rdflib_dumper import RDFLibDumper
 from linkml_runtime.dumpers.tsv_dumper import TSVDumper
 from linkml_runtime.dumpers.yaml_dumper import YAMLDumper
 
 json_dumper = JSONDumper()
+pydantic_rdf_dumper = PydanticRDFDumper()
 rdf_dumper = RDFDumper()
 rdflib_dumper = RDFLibDumper()
 yaml_dumper = YAMLDumper()
 csv_dumper = CSVDumper()
 tsv_dumper = TSVDumper()
+
+__all__ = [
+    "CSVDumper",
+    "JSONDumper",
+    "PydanticRDFDumper",
+    "RDFDumper",
+    "RDFLibDumper",
+    "TSVDumper",
+    "YAMLDumper",
+    "json_dumper",
+    "pydantic_rdf_dumper",
+    "rdf_dumper",
+    "rdflib_dumper",
+    "yaml_dumper",
+    "csv_dumper",
+    "tsv_dumper",
+]

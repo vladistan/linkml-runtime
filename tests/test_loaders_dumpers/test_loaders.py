@@ -10,25 +10,16 @@ from linkml_runtime.loaders import RDFLoader, json_loader, rdf_loader, yaml_load
 from linkml_runtime.utils.yamlutils import YAMLRoot
 from tests.test_loaders_dumpers import LD_11_DIR, LD_11_SSL_SVR, LD_11_SVR
 from tests.test_loaders_dumpers.environment import env
-from tests.test_loaders_dumpers.loaderdumpertestcase import LoaderDumperTestCase
 from tests.test_loaders_dumpers.models.termci_schema import Package
-
-
-def loader_test(filename: str, model: Union[type[YAMLRoot], type], loader) -> None:
-    """
-    Standalone loader test function for pytest functions
-    """
-
-    # Create a test case instance to use the loader_test method
-    test_case = LoaderDumperTestCase()
-    test_case.env = env
-    test_case.loader_test(filename, model, loader)
+from tests.test_loaders_dumpers.test_loaders_pydantic import loader_test
 
 
 @pytest.fixture(scope="module")
 def context_server():
     """Set up context server for testing."""
     # Check context servers - this mimics the original setUpClass logic
+    from tests.test_loaders_dumpers.loaderdumpertestcase import LoaderDumperTestCase
+
     context_server = LoaderDumperTestCase.check_context_servers([LD_11_SVR, LD_11_SSL_SVR])
     if not context_server:
         context_server = LD_11_DIR
@@ -36,6 +27,7 @@ def context_server():
 
 
 def test_yaml_loader():
+    """Load obo_sample.yaml, emit obo_sample_yaml.yaml and compare to obo_sample_output.yaml"""
     loader_test("obo_sample.yaml", Package, yaml_loader)
 
 

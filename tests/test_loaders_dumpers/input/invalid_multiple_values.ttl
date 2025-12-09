@@ -1,0 +1,22 @@
+@prefix schema: <http://schema.org/> .
+
+<http://example.org/person/invalid-person> a schema:Person ;
+    schema:identifier "person-invalid" ;
+    
+    # INCORRECT: Multiple names without language designations
+    # name field is single-valued, should only have one value
+    schema:name "John Smith" ;
+    schema:name "Jane Doe" ;
+    schema:name "Bob Johnson" ;
+    
+    # INCORRECT: Multiple descriptions without language designations  
+    # description field is single-valued, should only have one value
+    schema:description "First description" ;
+    schema:description "Second description" ;
+    schema:description "Third description" ;
+    
+    # CORRECT: Multiple aliases without language designations
+    # aliases field is multi-valued, so this is allowed
+    schema:alternateName "Johnny" ;
+    schema:alternateName "Jon" ;
+    schema:alternateName "Jack" .

@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir:*)",
+      "Bash(git clone:*)",
+      "Bash(git checkout:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(python -m pytest tests/test_loaders_dumpers/test_loaders_pydantic.py::test_loader_base_model -v)",
+      "Bash(uv sync:*)",
+      "Bash(uv run:*)",
+      "Bash(cp:*)",
+      "Read(/Users/vlad/Proj/mine/**)",
+      "Read(/Users/vlad/Proj/mine/**)",
+      "Read(/Users/vlad/Proj/mine/**)",
+      "Read(/Users/vlad/Proj/mine/**)",
+      "Read(/Users/vlad/Proj/mine/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
